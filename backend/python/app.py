@@ -2,11 +2,11 @@ from config import server,db
 from flask import redirect
 from constants.https_status_codes import *
 from utils.ApiResponse import ApiResponse
-from controllers.auth import auth
-from controllers.convert import convert
+# from controllers.auth import auth
+from controllers.RAG import RAG
 
-server.register_blueprint(auth)
-server.register_blueprint(convert)
+# server.register_blueprint(auth)
+server.register_blueprint(RAG)
 
 @server.route("/",methods=['GET'])
 def server_index():
