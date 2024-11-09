@@ -8,6 +8,7 @@ import {
   IoIosArrowDropright,
   IoIosArrowForward,
 } from "react-icons/io";
+import ClassCard from "../Components/ClassCard";
 
 const folderSettings = {
   speed: 500,
@@ -137,14 +138,43 @@ function Home() {
           <div className="flex w-full items-center">
             <Slider {...quizSettings} className="w-full">
               {[
-                { title: "Maths Unit 1 Quiz", date: "22 Nov" },
-                { title: "Physics Chapter 1 Test", date: "25 Nov" },
-                { title: "Chemistry Unit 2 Prep", date: "1 Dec" },
-                { title: "Biology Chapter 3 Exam", date: "3 Dec" },
-                { title: "Computer Science Module 1", date: "5 Dec" },
-                { title: "History Unit 4 Quiz", date: "8 Dec" },
-              ].map((quiz, index) => (
-                <QuizCard key={index} title={quiz.title} date={quiz.date} />
+                {
+                  title: "Python Class",
+                  date: "22 Nov",
+                  faculty: "Prof. Sumit Lafadia",
+                },
+                {
+                  title: "Data Science Workshop",
+                  date: "25 Nov",
+                  faculty: "Dr. Anita Sharma",
+                },
+                {
+                  title: "Machine Learning Basics",
+                  date: "1 Dec",
+                  faculty: "Prof. Ravi Patel",
+                },
+                {
+                  title: "Biology Lab",
+                  date: "3 Dec",
+                  faculty: "Dr. Neha Singh",
+                },
+                {
+                  title: "Computer Networks Lecture",
+                  date: "5 Dec",
+                  faculty: "Prof. Amit Kapoor",
+                },
+                {
+                  title: "Modern History Class",
+                  date: "8 Dec",
+                  faculty: "Dr. Priya Chatterjee",
+                },
+              ].map((classData, index) => (
+                <ClassCard
+                  key={index}
+                  title={classData.title}
+                  date={classData.date}
+                  faculty={classData.faculty}
+                />
               ))}
             </Slider>
           </div>
