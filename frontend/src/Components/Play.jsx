@@ -1,5 +1,6 @@
 import React from "react";
 import CircleQuestion from "./CircleQuestion";
+import OptionBox from "./OptionBox";
 
 function Play() {
   return (
@@ -31,7 +32,13 @@ function Play() {
               reiciendis necessitatibus facere quis earum aut, accusamus iusto
               sunt maxime illo similique ipsam.
             </p>
-            <p>Select an option</p>
+            <p className="mt-6">Select an option</p>
+            <div className="w-full flex flex-wrap gap-x-10 gap-y-5">
+              <OptionBox option={"a"} content={"Circle"} />
+              <OptionBox option={"b"} content={"Square"} />
+              <OptionBox option={"d"} content={"Triangle"} />
+              <OptionBox option={"d"} content={"Cross"} />
+            </div>
           </div>
         </div>
         <div className="bg-grey-8 h-32 w-40 rounded-2xl p-5 flex flex-col items-center justify-center">
