@@ -12,14 +12,14 @@ function Navbar() {
   const isActive = (path) => location.pathname.includes(path);
   return (
     <>
-      <div className='fixed z-20 top-0 w-full text-base-2 bg-grey-9 py-4 flex justify-between px-12 items-center border-b border-gray-800'>
-        <div className='flex gap-4 items-center'>
-          <FiMenu className='text-xl cursor-pointer' />
-          <div className='flex justify-between items-center'>
-            <h1 className='font-bold text-xl text-base-1'>Askio</h1>
-            <MdOutlineKeyboardArrowRight className='text-2xl text-base-1 cursor-pointer' />
+      <div className='fixed z-20 top-0 w-full text-base-2 bg-grey-9 py-4 flex justify-between px-6 items-center border-b border-gray-800'>
+        <div className='flex gap-4 items-start'>
+          <FiMenu className='text-2xl cursor-pointer mt-1' />
+          <div className='flex justify-between items-start'>
+            <h1 className='font-bold text-2xl text-base-1'>Askio</h1>
+            <MdOutlineKeyboardArrowRight className='text-2xl mt-1 text-base-1 cursor-pointer' />
             <div>
-              <h1 className='text-2xl '>Classroom Name</h1>
+              <h1 className='text-xl '>Classroom Name</h1>
               <p className='text-grey-1 text-sm'>Mridul Tiwari</p>
             </div>
           </div>
