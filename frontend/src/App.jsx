@@ -4,6 +4,7 @@ import MainLayout from "./Pages/More/MainLayout";
 import LandingPage from "./Pages/LandingPage";
 import Notes from "./Pages/Notes";
 import Askme from "./Pages/Askme";
+import Home from "./Pages/Home";
 
 function App() {
   const router = createBrowserRouter([
@@ -22,6 +23,8 @@ function App() {
         {
           path: "/:slugs/askme",
           element: <Askme />,
+          path: "/home",
+          element: <Home />,
         },
         // {
         //   path: "about",
