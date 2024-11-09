@@ -17,9 +17,19 @@ function App() {
           element: <LandingPage />,
         },
         {
+<<<<<<< HEAD
           path: "/:slugs/notes",
           element: <Notes />,
         },
+=======
+          path: "/home",
+          element: <Home />,
+        },
+        // {
+        //   path: "about",
+        //   element: <About />,
+        // },
+>>>>>>> 4e87f9035169589c8c835fd4f1fe9ea8dab3a8f2
         // {
         //   path: "contact",
         //   element: <Contact />,
