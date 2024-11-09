@@ -23,6 +23,8 @@ function App() {
         {
           path: "/:slugs/askme",
           element: <Askme />,
+        },
+        {
           path: "/home",
           element: <Home />,
         },
