@@ -30,6 +30,7 @@ const QuizController = {
 
   // Create a new quiz
   async createQuiz(req, res) {
+    console.log("HELLO")
     try {
       const { title, question } = req.body;
 
