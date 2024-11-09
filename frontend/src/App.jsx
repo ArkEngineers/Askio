@@ -29,7 +29,7 @@ function App() {
       children: [
         {
           path: "/app",
-          element: <Home />,  // Home must have <Outlet /> to render child components
+          element: <Home />, // Home must have <Outlet /> to render child components
         },
         {
           path: "/app/:slugs/notes", // child route without leading slash
@@ -40,7 +40,7 @@ function App() {
           element: <Askme />,
         },
         {
-          path: "puzzle",
+          path: "puzzle/:slugs",
           element: <Quiz />,
         },
       ],
