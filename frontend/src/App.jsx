@@ -1,14 +1,20 @@
 import { useState } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 import MainLayout from "./Pages/More/MainLayout";
 import LandingPage from "./Pages/LandingPage";
 import Notes from "./Pages/Notes";
 import Home from "./Pages/Home";
+import { useAuth } from "./Context/AuthContext";
 
 function App() {
+  const {user}=useAuth();
   const router = createBrowserRouter([
     {
       path: "/",
+      element: <Navigate to={user.length>0?"/":"/landing"}/>,
+    },
+    {
+      path: "/landing",
       element: <LandingPage />,
     },
     {
@@ -21,7 +27,7 @@ function App() {
           element: <Notes />,
         },
         {
-          path: "/home",
+          path: "/app/",
           element: <Home />,
         },
         // {

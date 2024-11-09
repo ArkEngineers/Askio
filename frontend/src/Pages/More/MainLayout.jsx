@@ -2,6 +2,7 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
 import Navbar from "../../Components/Navbar";
+import { Sidebar } from "../../Components/Sidebar";
 
 function MainLayout() {
   return (
@@ -12,6 +13,7 @@ function MainLayout() {
       <div className="bg-grey-9 h-screen text-grey-5">
         <Outlet />
       </div>
+      <Sidebar/>
     </div>
   );
 }
