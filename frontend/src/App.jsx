@@ -23,19 +23,20 @@ function App() {
       element: <LandingPage />,
     },
     {
-      path: "/app",
+      path: "/class/",
+      element: <Home />,
+    },
+    {
+      path: "/class",
       element: <MainLayout />,
       children: [
         {
-          path: "/app/:slugs/notes",
+          path: "/class/:slugs/notes",
           element: <Notes />,
         },
+       
         {
-          path: "/app/",
-          element: <Home />,
-        },
-        {
-          path: "/app/:slugs/askme",
+          path: "/class/:slugs/askme",
           element: <Home />,
         },
         // {
