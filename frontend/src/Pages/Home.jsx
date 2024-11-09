@@ -1,6 +1,6 @@
 import React from "react";
 import FolderCard from "../Components/FolderCard";
-import { FaFolder, FaQuestionCircle } from "react-icons/fa";
+import { FaBook, FaFolder, FaQuestionCircle } from "react-icons/fa";
 import QuizCard from "../Components/QuizCard";
 import Slider from "react-slick";
 import {
@@ -25,11 +25,13 @@ function Home() {
       <h2 className="text-3xl py-10 text-center font-semibold text-base-1">
         Good morning, Azeem Idrisi
       </h2>
-      <div className="flex flex-col items-center justify-center">
+      <div className="flex flex-col items-center justify-center pb-10">
         <div className="flex flex-col gap-y-4 w-full">
           <div className="px-4 flex gap-x-2 items-center w-full">
             <FaFolder className="text-grey-1" />
-            <p className="text-xs text-grey-1 w-full text-left">Your Folders</p>
+            <p className="text-xs text-grey-1 w-full text-left font-bold">
+              Your Folders
+            </p>
           </div>
           <div className="flex w-full items-center">
             <Slider {...settings} className="w-full">
@@ -59,7 +61,31 @@ function Home() {
           </div>
         </div>
       </div>
-      <div className="flex flex-col items-center justify-center py-20">
+      <div className="flex flex-col items-center justify-center py-10">
+        <div className="flex flex-col gap-y-4 w-full">
+          <div className="px-4 flex gap-x-2 items-center w-full">
+            <FaBook className="text-grey-1" />
+            <p className="text-xs text-grey-1 w-full text-left font-semibold">
+              Joined Classes
+            </p>
+          </div>
+          <div className="flex w-full items-center">
+            <Slider {...{ ...settings, slidesToShow: 4 }} className="w-full">
+              {[
+                { title: "Maths Unit 1 Quiz", date: "22 Nov" },
+                { title: "Physics Chapter 1 Test", date: "25 Nov" },
+                { title: "Chemistry Unit 2 Prep", date: "1 Dec" },
+                { title: "Biology Chapter 3 Exam", date: "3 Dec" },
+                { title: "Computer Science Module 1", date: "5 Dec" },
+                { title: "History Unit 4 Quiz", date: "8 Dec" },
+              ].map((quiz, index) => (
+                <QuizCard key={index} title={quiz.title} date={quiz.date} />
+              ))}
+            </Slider>
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-col items-center justify-center py-10">
         <div className="flex flex-col gap-y-4 w-full">
           <div className="px-4 flex gap-x-2 items-center w-full">
             <FaQuestionCircle className="text-grey-1" />
