@@ -10,13 +10,14 @@ import Notes from "./Pages/Notes";
 import Askme from "./Pages/Askme";
 import Home from "./Pages/Home";
 import { useAuth } from "./Context/AuthContext";
+import Quiz from "./Pages/Quiz";
 
 function App() {
   const { user } = useAuth();
   const router = createBrowserRouter([
     {
       path: "/",
-      element: <Navigate to={user.length > 0 ? "/" : "/landing"} />,
+      element: <Navigate to={user ? "/app" : "/landing"} />,
     },
     {
       path: "/landing",
@@ -28,33 +29,20 @@ function App() {
       children: [
         {
           path: "/app",
-          element: <Home />,
+          element: <Home />,  // Home must have <Outlet /> to render child components
         },
         {
-          path: "/app/:slugs/notes",
+          path: "/app/:slugs/notes", // child route without leading slash
           element: <Notes />,
         },
-
         {
-          path: "/app/:slugs/askme",
+          path: "/app/:slugs/askme", // child route without leading slash
           element: <Askme />,
         },
-        // {
-        //   path: "about",
-        //   element: <About />,
-        // },
-        // {
-        //   path: "contact",
-        //   element: <Contact />,
-        // },
-        // {
-        //   path: "services",
-        //   element: <Services />,
-        // },
-        // {
-        //   path:"services/:slug",
-        //   element:<Service_Template/>
-        // }
+        {
+          path: "puzzle",
+          element: <Quiz />,
+        },
       ],
     },
   ]);

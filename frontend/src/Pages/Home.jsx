@@ -13,7 +13,7 @@ const settings = {
   // dots: true,
   // infinite: true,
   speed: 500,
-  slidesToShow: 6,
+  slidesToShow: 7,
   slidesToScroll: 1,
   nextArrow: <IoIosArrowDropright color="gray" opacity={0.3} />,
   prevArrow: <IoIosArrowDropleft color="gray" opacity={0.3} />,

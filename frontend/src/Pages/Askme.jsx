@@ -21,7 +21,7 @@ const colorTags = [
 
 function Askme() {
   const [text, setText] = useState("");
-  const [chat, setChat] = useState([""]);
+  const [chat, setChat] = useState([]);
   const [modal, setModal] = useState(true);
   const searchRef = useRef(null);
   const [selectedTags, setSelectedTags] = useState([]);
@@ -41,18 +41,19 @@ function Askme() {
   }, []);
   return (
     <div className=" pl-20 pt-24 h-screen p-2 flex flex-col justify-center items-center">
-      <div className=" border-2 w-8/12 border-base-2 rounded-md min-h-[60%] p-2 text">
+      <div className="border-2 w-8/12 border-base-2 rounded-md min-h-[60%] p-2">
         {chat.map((item, key) => {
           return (
             <div
               key={key}
-              className="bg-grey-9 p-2 rounded-md mb-2 text-white text-right"
+              className="bg-base-4 text-base-1 p-2 rounded-lg mb-2 text-right w-fit ml-auto"
             >
-              <p>{item}</p>
+              <p className="text-white">{item}</p>
             </div>
           );
         })}
       </div>
+
       {modal ? (
         <div className="flex w-8/12 h-10 items-center gap-2 m-2 p-4">
           {!selectedTags.length && (
@@ -195,7 +196,7 @@ function Chatarea({ text, setText, chat, setChat }) {
     setText("");
   }
   return (
-    <div className="flex w-full flex-row items-center gap-2 rounded-[99px] border-2 border-base-2 bg-grey-9 full ">
+    <div className="flex w-full px-4 flex-row items-center gap-2 rounded-[99px] border-2 border-base-2 bg-grey-9 full ">
       <Textarea
         rows={1}
         value={text}
@@ -211,7 +212,7 @@ function Chatarea({ text, setText, chat, setChat }) {
         onChange={handleChange}
       />
       <div>
-        <IoMdSend className=" cursor-pointer" onClick={handelClick} />
+        <IoMdSend className="text-2xl cursor-pointer" onClick={handelClick} />
       </div>
     </div>
   );

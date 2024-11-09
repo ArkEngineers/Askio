@@ -12,8 +12,8 @@ function Navbar() {
 
   const isActive = (path) => location.pathname.includes(path);
 
-  // Check if we're on the "/app/" route
-  const isAppRoot = location.pathname === "/app/";
+  // Check if the route includes "notes" or "askme"
+  const isNotesOrAskMeRoute = location.pathname.includes("notes") || location.pathname.includes("askme");
 
   return (
     <>
@@ -22,7 +22,7 @@ function Navbar() {
           <FiMenu className='text-2xl cursor-pointer mt-1' />
           <div className='flex justify-between items-start'>
             <Link to="/app/"><h1 className='font-bold text-3xl text-base-1'>Askio</h1></Link>
-            {!isAppRoot && (
+            {isNotesOrAskMeRoute && (
               <>
                 <MdOutlineKeyboardArrowRight className='text-2xl mt-1 text-base-1 cursor-pointer' />
                 <div>
@@ -38,7 +38,7 @@ function Navbar() {
           <Avatar size='sm' src={user.image} alt="avatar" />
         </div>
       </div>
-      {!isAppRoot && (
+      {isNotesOrAskMeRoute && (
         <div className="border-b z-10 bg-grey-9 fixed top-20 left-20 px-12 text-lg w-full flex gap-4 text-grey-2 border-grey-6">
           <Link to="/app/classa/notes">
             <h1 className={`${isActive('/notes') ? 'text-base-3 border-b-2 border-base-3' : 'text-grey-3 border-grey-3'} py-2`}>
