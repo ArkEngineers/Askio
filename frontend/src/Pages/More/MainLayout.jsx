@@ -10,7 +10,7 @@ function MainLayout() {
       <div className="bg-grey-9 w-full">
         <Navbar/>
       </div>
-      <div className="bg-grey-9 h-screen text-grey-5">
+      <div className="bg-grey-9 h-full text-grey-5">
         <Outlet />
       </div>
       <Sidebar/>
