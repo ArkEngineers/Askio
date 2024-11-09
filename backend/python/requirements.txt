@@ -1,0 +1,9 @@
+flask
+flask_cors
+flask_sqlalchemy
+pymongo[srv]
+Flask-PyMongo
+validators
+textblob
+flask_jwt_extended
+sqlalchemy
