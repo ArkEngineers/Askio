@@ -1,24 +1,20 @@
-/** @type {import('tailwindcss').Config} */
 const withMT = require("@material-tailwind/react/utils/withMT");
-
+ 
 module.exports = withMT({
   content: [
-    ".src/**/*.{js,ts,jsx,tsx,mdx}",
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
-      fontFamily: {
-        satoshi: ["Satoshi", "sans-serif"],
-        inter: ["Inter", "sans-serif"],
-      },
       colors: {
-        base: {
+        "base": {
           1: "#E2F1E7",
           2: "#AD49E1",
-          3: "#AD49E1",
+          3: "#7A1CAC",
           4: "#243642",
         },
-        grey: {
+        "grey": {
           1: "#ACACAC",
           2: "#C0C0C0",
           3: "#D7D7D7",
@@ -32,13 +28,13 @@ module.exports = withMT({
         },
       },
       backgroundColor: {
-        base: {
+        "base": {
           1: "#E2F1E7",
           2: "#AD49E1",
-          3: "#AD49E1",
+          3: "#7A1CAC",
           4: "#243642",
         },
-        grey: {
+        "grey": {
           1: "#ACACAC",
           2: "#C0C0C0",
           3: "#D7D7D7",
@@ -51,21 +47,7 @@ module.exports = withMT({
           10: "#000000",
         },
       },
-      animation: {
-        marquee: 'marquee 25s linear infinite',
-        marquee2: 'marquee2 25s linear infinite',
-      },
-      keyframes: {
-        marquee: {
-          '0%': { transform: 'translateX(0%)' },
-          '100%': { transform: 'translateX(-100%)' },
-        },
-        marquee2: {
-          '0%': { transform: 'translateX(100%)' },
-          '100%': { transform: 'translateX(0%)' },
-        },
-      },
     },
   },
   plugins: [],
-});
+})

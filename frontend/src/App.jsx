@@ -4,6 +4,7 @@ import "./App.css";
 import MainLayout from "./Pages/More/MainLayout";
 import Home from "./Pages/Home";
 import LandingPage from "./Pages/LandingPage";
+import Notes from "./Pages/Notes";
 
 function App() {
   const router = createBrowserRouter([
@@ -15,10 +16,10 @@ function App() {
           path: "/",
           element: <LandingPage />,
         },
-        // {
-        //   path: "about",
-        //   element: <About />,
-        // },
+        {
+          path: "/:slugs/notes",
+          element: <Notes />,
+        },
         // {
         //   path: "contact",
         //   element: <Contact />,
