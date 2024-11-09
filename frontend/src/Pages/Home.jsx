@@ -9,14 +9,79 @@ import {
   IoIosArrowForward,
 } from "react-icons/io";
 
-const settings = {
-  // dots: true,
-  // infinite: true,
+const folderSettings = {
   speed: 500,
-  slidesToShow: 6,
+  slidesToShow: 7,
   slidesToScroll: 1,
   nextArrow: <IoIosArrowDropright color="gray" opacity={0.3} />,
   prevArrow: <IoIosArrowDropleft color="gray" opacity={0.3} />,
+  responsive: [
+    {
+      breakpoint: 1440, // Extra large screens (desktop)
+      settings: {
+        slidesToShow: 6,
+        slidesToScroll: 1,
+      },
+    },
+    {
+      breakpoint: 1024, // Large screens
+      settings: {
+        slidesToShow: 4,
+        slidesToScroll: 1,
+      },
+    },
+    {
+      breakpoint: 800, // Medium screens (tablet)
+      settings: {
+        slidesToShow: 3,
+        slidesToScroll: 1,
+      },
+    },
+    {
+      breakpoint: 480, // Small screens (mobile)
+      settings: {
+        slidesToShow: 2,
+        slidesToScroll: 1,
+      },
+    },
+  ],
+};
+const quizSettings = {
+  speed: 500,
+  slidesToShow: 5,
+  slidesToScroll: 1,
+  nextArrow: <IoIosArrowDropright color="gray" opacity={0.3} />,
+  prevArrow: <IoIosArrowDropleft color="gray" opacity={0.3} />,
+  responsive: [
+    {
+      breakpoint: 1440, // Extra large screens (desktop)
+      settings: {
+        slidesToShow: 4,
+        slidesToScroll: 1,
+      },
+    },
+    {
+      breakpoint: 1024, // Large screens
+      settings: {
+        slidesToShow: 3,
+        slidesToScroll: 1,
+      },
+    },
+    {
+      breakpoint: 800, // Medium screens (tablet)
+      settings: {
+        slidesToShow: 2,
+        slidesToScroll: 1,
+      },
+    },
+    {
+      breakpoint: 480, // Small screens (mobile)
+      settings: {
+        slidesToShow: 1,
+        slidesToScroll: 1,
+      },
+    },
+  ],
 };
 
 function Home() {
@@ -34,7 +99,7 @@ function Home() {
             </p>
           </div>
           <div className="flex w-full items-center">
-            <Slider {...settings} className="w-full">
+            <Slider {...folderSettings} className="w-full">
               {[
                 { title: "Software Engineering", date: "9 Nov" },
                 { title: "Artificial Intelligence", date: "18 Oct" },
@@ -70,7 +135,7 @@ function Home() {
             </p>
           </div>
           <div className="flex w-full items-center">
-            <Slider {...{ ...settings, slidesToShow: 4 }} className="w-full">
+            <Slider {...quizSettings} className="w-full">
               {[
                 { title: "Maths Unit 1 Quiz", date: "22 Nov" },
                 { title: "Physics Chapter 1 Test", date: "25 Nov" },
@@ -94,7 +159,7 @@ function Home() {
             </p>
           </div>
           <div className="flex w-full items-center">
-            <Slider {...{ ...settings, slidesToShow: 4 }} className="w-full">
+            <Slider {...quizSettings} className="w-full">
               {[
                 { title: "Maths Unit 1 Quiz", date: "22 Nov" },
                 { title: "Physics Chapter 1 Test", date: "25 Nov" },
