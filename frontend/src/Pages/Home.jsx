@@ -1,10 +1,9 @@
 import React from "react";
-import GoogleLogin from "../Components/GoogleLogin";
 
 function Home() {
   return (
     <div>
-      {/* <GoogleLogin /> */}
+      <h2 className="bg-blue-500 text-red-600">Hanji Goodmorning</h2>
     </div>
   );
 }

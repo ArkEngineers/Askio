@@ -15,6 +15,10 @@ function App() {
           path: "/",
           element: <LandingPage />,
         },
+        {
+          path: "/home",
+          element: <Home />,
+        },
         // {
         //   path: "about",
         //   element: <About />,
