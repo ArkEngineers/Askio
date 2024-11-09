@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import MainLayout from "./Pages/More/MainLayout";
 import LandingPage from "./Pages/LandingPage";
 import Notes from "./Pages/Notes";
+import Home from "./Pages/Home";
 
 function App() {
   const router = createBrowserRouter([
@@ -17,6 +18,10 @@ function App() {
         {
           path: "/:slugs/notes",
           element: <Notes />,
+        },
+        {
+          path: "/home",
+          element: <Home />,
         },
         // {
         //   path: "about",
