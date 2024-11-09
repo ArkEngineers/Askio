@@ -4,7 +4,7 @@ import GoogleLogin from "../Components/GoogleLogin";
 function Home() {
   return (
     <div>
-      <GoogleLogin />
+      {/* <GoogleLogin /> */}
     </div>
   );
 }
