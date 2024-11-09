@@ -11,9 +11,9 @@ Router.get("/auth/google", googleAuth);
 Router.post("/group/", ClassController.createClass);
 Router.get("/group/groups", ClassController.fetchAllClasses);
 Router.get("/group/user/:userId/groups", ClassController.fetchUserClasses);
-Router.post("/quiz/createQuiz",QuizController.createQuiz);
-Router.get("/quiz/:id",QuizController.getQuiz);
-Router.get("/quiz/",QuizController.getAllQuizzes);
-Router.delete("/quiz/del",QuizController.deleteQuiz);
+Router.post("/quiz/createQuiz", QuizController.createQuiz);
+Router.get("/quiz/:id", QuizController.getQuiz);
+Router.get("/quiz/", QuizController.getAllQuizzes);
+Router.delete("/quiz/del/:id", QuizController.deleteQuiz);
 
 export default Router;
