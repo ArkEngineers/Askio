@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom"
 import MainLayout from "./Pages/More/MainLayout";
 import LandingPage from "./Pages/LandingPage";
 import Notes from "./Pages/Notes";
+import Askme from "./Pages/Askme";
 import Home from "./Pages/Home";
 import { useAuth } from "./Context/AuthContext";
 
@@ -28,6 +29,10 @@ function App() {
         },
         {
           path: "/app/",
+          element: <Home />,
+        },
+        {
+          path: "/app/:slugs/askme",
           element: <Home />,
         },
         // {
