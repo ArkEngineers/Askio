@@ -8,14 +8,15 @@ function App() {
   const router = createBrowserRouter([
     {
       path: "/",
+      element: <LandingPage />,
+    },
+    {
+      path: "/app",
       element: <MainLayout />,
       children: [
+        
         {
-          path: "/",
-          element: <LandingPage />,
-        },
-        {
-          path: "/:slugs/notes",
+          path: "/app/:slugs/notes",
           element: <Notes />,
         },
         // {

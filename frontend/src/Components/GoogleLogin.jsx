@@ -1,7 +1,7 @@
 import React from "react";
 import { useGoogleLogin } from "@react-oauth/google";
 import { googleAuth } from "../services/api";
-
+import { FcGoogle } from "react-icons/fc";
 export default (props) => {
   const responseGoogle = async (authResult) => {
     try {
@@ -29,12 +29,10 @@ export default (props) => {
 
   return (
     <button
-      style={{
-        padding: "10px 20px",
-      }}
+      className="px-10 py-5 hover:bg-grey-6 w-full flex items-center justify-center gap-4"
       onClick={googleLogin}
     >
-      Sign in with Google
+      <FcGoogle/> Sign in with Google
     </button>
   );
 };
