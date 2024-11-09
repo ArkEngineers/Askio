@@ -17,11 +17,11 @@ function Navbar() {
 
   return (
     <>
-      <div className='fixed z-20 top-0 w-full text-base-2 bg-grey-9 py-4 flex justify-between px-6 items-center border-b border-gray-800'>
-        <div className='flex gap-4 items-start'>
+      <div className='fixed z-20 top-0 w-full text-base-2 bg-grey-9 py-4 flex justify-between px-4 items-center border-b border-gray-800'>
+        <div className='flex gap-8 items-start'>
           <FiMenu className='text-2xl cursor-pointer mt-1' />
           <div className='flex justify-between items-start'>
-            <Link to="/app/"><h1 className='font-bold text-2xl text-base-1'>Askio</h1></Link>
+            <Link to="/app/"><h1 className='font-bold text-3xl text-base-1'>Askio</h1></Link>
             {!isAppRoot && (
               <>
                 <MdOutlineKeyboardArrowRight className='text-2xl mt-1 text-base-1 cursor-pointer' />
