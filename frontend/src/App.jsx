@@ -1,33 +1,44 @@
 import { useState } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  Navigate,
+  RouterProvider,
+} from "react-router-dom";
 import MainLayout from "./Pages/More/MainLayout";
 import LandingPage from "./Pages/LandingPage";
 import Notes from "./Pages/Notes";
 import Askme from "./Pages/Askme";
 import Home from "./Pages/Home";
+import { useAuth } from "./Context/AuthContext";
 
 function App() {
+  const { user } = useAuth();
   const router = createBrowserRouter([
     {
       path: "/",
+      element: <Navigate to={user.length > 0 ? "/" : "/landing"} />,
+    },
+    {
+      path: "/landing",
+      element: <LandingPage />,
+    },
+    {
+      path: "/app",
       element: <MainLayout />,
       children: [
         {
-          path: "/",
-          element: <LandingPage />,
-        },
-        {
-          path: "/:slugs/notes",
+          path: "/app/:slugs/notes",
           element: <Notes />,
         },
         {
-          path: "/:slugs/askme",
-          element: <Askme />,
-        },
-        {
-          path: "/home",
+          path: "/app/",
           element: <Home />,
         },
+        {
+          path: "/app/:slugs/askme",
+          element: <Askme />,
+        },
+
         // {
         //   path: "about",
         //   element: <About />,
