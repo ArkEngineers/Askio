@@ -36,9 +36,8 @@ function App() {
         },
         {
           path: "/app/:slugs/askme",
-          element: <Askme />,
+          element: <Home />,
         },
-
         // {
         //   path: "about",
         //   element: <About />,
