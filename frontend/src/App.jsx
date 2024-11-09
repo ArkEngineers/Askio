@@ -11,6 +11,7 @@ import Askme from "./Pages/Askme";
 import Home from "./Pages/Home";
 import { useAuth } from "./Context/AuthContext";
 import Quiz from "./Pages/Quiz";
+import Play from "./Components/Play";
 
 function App() {
   const { user } = useAuth();
@@ -42,6 +43,10 @@ function App() {
         {
           path: "puzzle/:slugs",
           element: <Quiz />,
+        },
+        {
+          path: "play/:slugs",
+          element: <Play />,
         },
       ],
     },
