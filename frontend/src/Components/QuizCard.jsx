@@ -31,7 +31,7 @@ function QuizCard({ title, date }) {
       <div className="flex items-center justify-between">
         <p className="mx-4 text-xs text-grey-1 w-full text-left">{date}</p>
         <Link
-          to={`/puzzle/${stringToSlug(title)}`}
+          to={`/play/${stringToSlug(title)}`}
           onClick={handleClick}
           className="mx-4 text-white text-xs bg-blue-500 px-2 py-1 rounded-2xl text-nowrap cursor-pointer hover:bg-blue-800 transition-all duration-300"
         >
