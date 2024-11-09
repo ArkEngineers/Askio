@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import GoogleLogin from "../Components/GoogleLogin";
+import { Button } from "@material-tailwind/react";
 // import GoogleLogin from "./components/GoogleLogin";
 
 function LandingPage() {
@@ -9,6 +10,7 @@ function LandingPage() {
       <GoogleLogin setUser={setUser}></GoogleLogin>
       {user && user.name}
       {user && user.email}
+      <Button>Button</Button>
     </div>
   );
 }
