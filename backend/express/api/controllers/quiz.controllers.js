@@ -18,6 +18,29 @@ const QuizController = {
     }
   },
 
+  // Update an existing quiz by ID
+  async updateQuiz(req, res) {
+    try {
+      const quizId = req.params.id;
+      const { title, question } = req.body;
+
+      // Find and update the quiz
+      const updatedQuiz = await Quiz.findByIdAndUpdate(
+        quizId,
+        { title, question },
+        { new: true, runValidators: true }
+      );
+
+      if (!updatedQuiz) {
+        return res.status(404).json({ message: "Quiz not found" });
+      }
+
+      res.status(200).json(updatedQuiz);
+    } catch (error) {
+      res.status(500).json({ message: "Server error", error });
+    }
+  },
+
   // Get all quizzes
   async getAllQuizzes(req, res) {
     try {
@@ -30,7 +53,7 @@ const QuizController = {
 
   // Create a new quiz
   async createQuiz(req, res) {
-    console.log("HELLO")
+    console.log("HELLO");
     try {
       const { title, question } = req.body;
 
