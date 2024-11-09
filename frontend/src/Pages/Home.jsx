@@ -154,7 +154,7 @@ function Home() {
                   faculty: "Prof. Ravi Patel",
                 },
                 {
-                  title: "Biology Lab",
+                  title: "Biology for Everyone",
                   date: "3 Dec",
                   faculty: "Dr. Neha Singh",
                 },

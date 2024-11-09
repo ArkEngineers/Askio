@@ -6,7 +6,7 @@ function ClassCard({ title, date, faculty }) {
     <div className="w-60 h-64 min-w-60 hover:bg-gray-800 transition-all duration-300 bg-grey-6 mx-2 rounded-xl flex flex-col overflow-hidden justify-between pb-2">
       <div className="w-full h-1/2  ">
         <img
-          src="https://st4.depositphotos.com/2572561/31066/i/450/depositphotos_310665768-stock-photo-over-the-shoulder-shot-of.jpg"
+          src="https://builtin.com/sites/www.builtin.com/files/2024-10/artificial-intelligence.jpg"
           className="w-full object-cover h-[85%]"
         />
         <h3 className="mx-4 mt-2 w-[75%] font-bold text-lg text-base-1">

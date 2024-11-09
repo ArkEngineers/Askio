@@ -16,7 +16,7 @@ function App() {
   const router = createBrowserRouter([
     {
       path: "/",
-      element: <Navigate to={user.length > 0 ? "/" : "/landing"} />,
+      element: <Navigate to={user?.length > 0 ? "/" : "/landing"} />,
     },
     {
       path: "/landing",

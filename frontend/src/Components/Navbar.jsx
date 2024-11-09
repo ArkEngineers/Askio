@@ -37,7 +37,14 @@ function Navbar() {
         </div>
         <div className="flex gap-4 items-center">
           <SlOptions className="text-xl cursor-pointer" />
-          <Avatar size="sm" src={user.image} alt="avatar" />
+          <Avatar
+            size="sm"
+            src={
+              user?.image ||
+              "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+            }
+            alt="avatar"
+          />
         </div>
       </div>
       {!isAppRoot && (

@@ -5,7 +5,7 @@ function QuizCard({ title, date }) {
     <div className="w-60 h-40 min-w-60 hover:bg-gray-800 transition-all duration-300 bg-grey-6 mx-2 rounded-xl flex flex-col overflow-hidden justify-between pb-2">
       <div className="w-full h-2/3 ">
         <img
-          src="https://st4.depositphotos.com/2572561/31066/i/450/depositphotos_310665768-stock-photo-over-the-shoulder-shot-of.jpg"
+          src="https://cdn.corporatefinanceinstitute.com/assets/database-1024x703.jpeg"
           className="h-1/2 w-full object-cover"
         />
         <h3 className="mx-4 mt-2 w-[75%] font-bold text-lg text-base-1">
