@@ -1,8 +1,18 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import CircleQuestion from "./CircleQuestion";
 import OptionBox from "./OptionBox";
 
 function Play() {
+  const [seconds, setSeconds] = useState(60);
+
+  useEffect(() => {
+    if (seconds > 0) {
+      const timerId = setInterval(() => {
+        setSeconds((prevSeconds) => prevSeconds - 1);
+      }, 1000);
+      return () => clearInterval(timerId); // Clean up interval on unmount
+    }
+  }, [seconds]);
   return (
     <div className="w-full h-screen bg-grey-9 pt-20">
       <div className="flex justify-around">
@@ -43,7 +53,9 @@ function Play() {
         </div>
         <div className="bg-grey-8 h-32 w-40 rounded-2xl p-5 flex flex-col items-center justify-center">
           <p className="font-bold text-center">Time Left</p>
-          <h1 className="text-4xl font-bold">00:59s</h1>
+          <h1 className="text-4xl font-bold">
+            {seconds === 60 ? "01:00m " : `00:${seconds}s`}
+          </h1>
         </div>
       </div>
     </div>
