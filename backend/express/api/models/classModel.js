@@ -2,42 +2,44 @@ import mongoose from "mongoose";
 
 const groupSchema = new mongoose.Schema({
   groupName: {
-    type:String,
-    required:true
+    type: String,
+    required: true,
   },
-  faculty:{
-    type:mongoose.Schema.Types.ObjectId,
-    ref:"User"
-  },
-  userAdded:[{
+  faculty: {
     type: mongoose.Schema.Types.ObjectId,
-    ref:"User"
-  }],
-  notes:[
+    ref: "User",
+  },
+  userAdded: [
     {
-        url:{type:String},
-        tag:{type:String},
-    }
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
   ],
-  leaderboard:[
+  notes: [
     {
-       user:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"User"
-       },
-       score:{
-        type:Number,
-        default:0
-       }
-    }
+      title: { type: String },
+      url: { type: String },
+      tag: { type: String },
+    },
   ],
-  quiz:[
+  leaderboard: [
     {
+      user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref:"User"
-    }
-  ]
-
+        ref: "User",
+      },
+      score: {
+        type: Number,
+        default: 0,
+      },
+    },
+  ],
+  quiz: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+  ],
 });
 
 export default new mongoose.model("Group", groupSchema);

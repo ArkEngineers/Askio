@@ -3,24 +3,17 @@ import { FaUserCircle } from "react-icons/fa";
 import { useAuth } from "../Context/AuthContext";
 import { Link } from "react-router-dom";
 
-function ClassCard({ title, date, faculty }) {
+function ClassCard({ title, date, faculty, classId }) {
   const { setModule } = useAuth();
 
-  function stringToSlug(str) {
-    return str
-      .toLowerCase() // Convert to lowercase
-      .trim() // Remove whitespace from start and end
-      .replace(/[^a-z0-9 -]/g, "") // Remove invalid characters
-      .replace(/\s+/g, "-") // Replace spaces with -
-      .replace(/-+/g, "-"); // Replace multiple - with single -
-  }
   const handleClick = () => {
-    setModule(stringToSlug(title));
+    setModule(classId);
+    console.log(classId);
   };
 
   return (
     <Link
-      to={`/app/${stringToSlug(title)}/notes`}
+      to={`/app/${classId}/notes`}
       onClick={handleClick}
       className="w-60 h-64 min-w-60 hover:bg-gray-800 transition-all duration-300 bg-grey-6 mx-2 rounded-xl flex flex-col overflow-hidden justify-between pb-2"
     >
