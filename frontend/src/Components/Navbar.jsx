@@ -5,6 +5,7 @@ import { SlOptions } from "react-icons/sl";
 import { MdOutlineKeyboardArrowRight } from "react-icons/md";
 import { useAuth } from "../Context/AuthContext";
 import { Link, useLocation } from "react-router-dom";
+import { FaUpload } from "react-icons/fa";
 
 function Navbar() {
   const { user } = useAuth();
@@ -39,6 +40,7 @@ useEffect(()=>{
           </div>
         </div>
         <div className="flex gap-4 items-center">
+        <button className="px-4 py-2 rounded-lg bg-base-3 text-base-1 flex gap-2 items-center"><FaUpload/>Upload </button>
           <SlOptions className="text-xl cursor-pointer" />
           <Avatar
             size="sm"

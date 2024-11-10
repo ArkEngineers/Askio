@@ -1,6 +1,6 @@
 import React from "react";
 import FolderCard from "../Components/FolderCard";
-import { FaBook, FaFolder, FaQuestionCircle } from "react-icons/fa";
+import { FaBook, FaFolder, FaQuestionCircle, FaUpload } from "react-icons/fa";
 import QuizCard from "../Components/QuizCard";
 import Slider from "react-slick";
 import {
@@ -88,9 +88,11 @@ const quizSettings = {
 function Home() {
   return (
     <div className="px-20 pl-40 pt-20">
+      
       <h2 className="text-3xl py-10 text-center font-semibold text-base-1">
         Good morning, Azeem Idrisi
       </h2>
+      
       <div className="flex flex-col items-center justify-center pb-10">
         <div className="flex flex-col gap-y-4 w-full">
           <div className="px-4 flex gap-x-2 items-center w-full">
