@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import FolderCard from "../Components/FolderCard";
 import { FaBook, FaFolder, FaQuestionCircle, FaUpload } from "react-icons/fa";
 import QuizCard from "../Components/QuizCard";
@@ -10,6 +10,8 @@ import {
 } from "react-icons/io";
 import ClassCard from "../Components/ClassCard";
 import { useAuth } from "../Context/AuthContext";
+import axios from "axios";
+import { AUTH_ROUTE } from "../services/constants";
 
 const folderSettings = {
   infinite: false,
@@ -90,7 +92,23 @@ const quizSettings = {
 
 function Home() {
   const { user } = useAuth();
-  console.log("🚀 ~ Home ~ user:", user);
+  const [allclasses, setAllclasses] = useState(null);
+
+  const fetchAllClasses = async () => {
+    try {
+      const response = await axios.get(
+        `${AUTH_ROUTE}/group/user/${user?.email}/groups`
+      );
+
+      if (response.status === 200) setAllclasses(response.data);
+    } catch (error) {
+      console.log({ error });
+    }
+  };
+
+  useEffect(() => {
+    fetchAllClasses();
+  }, []);
   return (
     <div className="px-20 pl-40 pt-20">
       <h2 className="text-3xl py-10 text-center font-semibold text-base-1">
@@ -143,45 +161,15 @@ function Home() {
           </div>
           <div className="flex w-full items-center">
             <Slider {...quizSettings} className="w-full">
-              {[
-                {
-                  title: "Python Class",
-                  date: "22 Nov",
-                  faculty: "Prof. Sumit Lafadia",
-                },
-                {
-                  title: "Data Science Workshop",
-                  date: "25 Nov",
-                  faculty: "Dr. Anita Sharma",
-                },
-                {
-                  title: "Machine Learning Basics",
-                  date: "1 Dec",
-                  faculty: "Prof. Ravi Patel",
-                },
-                {
-                  title: "Biology for Everyone",
-                  date: "3 Dec",
-                  faculty: "Dr. Neha Singh",
-                },
-                {
-                  title: "Computer Networks Lecture",
-                  date: "5 Dec",
-                  faculty: "Prof. Amit Kapoor",
-                },
-                {
-                  title: "Modern History Class",
-                  date: "8 Dec",
-                  faculty: "Dr. Priya Chatterjee",
-                },
-              ].map((classData, index) => (
-                <ClassCard
-                  key={index}
-                  title={classData.title}
-                  date={classData.date}
-                  faculty={classData.faculty}
-                />
-              ))}
+              {allclasses &&
+                allclasses.map((classData, index) => (
+                  <ClassCard
+                    key={index}
+                    title={classData.groupName}
+                    date={classData.created_At}
+                    faculty={classData?.faculty?.name}
+                  />
+                ))}
             </Slider>
           </div>
         </div>
