@@ -13,10 +13,10 @@ export function Sidebar() {
   return (
     <div className="fixed left-0 top-20 text-base-3 flex flex-col justify-start items-center text-2xl bg-grey-9 h-screen border-r gap-6 border-gray-800 z-10 h-[calc(100vh-2rem)] p-4 shadow-xl shadow-blue-gray-900/5">
       <Link to="/app">{isActive("/app") ? <FaHome /> : <FiHome />}</Link>
-      <Link to="/puzzle/all">
+      <Link to="/app/puzzle/all">
         {isActive("/puzzle") ? <FaPuzzlePiece /> : <SlPuzzle />}
       </Link>
-      <Link to="/settings">
+      <Link to="/app/settings">
         {isActive("/settings") ? <FcSettings /> : <SlSettings />}
       </Link>
     </div>

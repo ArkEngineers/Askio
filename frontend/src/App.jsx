@@ -50,11 +50,11 @@ function App() {
           element: <Askme />,
         },
         {
-          path: "puzzle/:slugs",
+          path: "/app/puzzle/:slugs",
           element: <Quiz />,
         },
         {
-          path: "play/:slugs",
+          path: "/app/play/:slugs",
           element: <Play />,
         },
       ],
