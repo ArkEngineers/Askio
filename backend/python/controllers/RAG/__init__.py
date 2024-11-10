@@ -149,6 +149,7 @@ def rag_query():
     prompt = create_prompt(query,collection_name)
 
 
+
     # Use the `prompt` created above to populate the `content` field in the chat message
     response = fw_client.chat.completions.create(
     model=model,
