@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from flask_jwt_extended import JWTManager
 from pymongo import MongoClient
 import os
+
 load_dotenv()
 
 external_scripts=[

@@ -17,42 +17,143 @@ import pandas as pd
 from datasets import load_dataset
 from flask import request
 from fireworks.client import Fireworks
+from langchain.document_loaders import PyPDFLoader
 
 RAG=Blueprint("RAG",__name__,url_prefix="/api/v1/RAG")
 
 
 @RAG.route("/",methods=['POST'])
 def rag_index():
-    data=request.get_json()
-    collection_name=data["collection_name"]
+    data = request.get_json()
+    collection_name = data["collection_name"]
+    link=data["url"]
     print(mongodb_client)
-def rag_index(collection_name):
-#! pip install -qU pymongo datasets langchain fireworks-ai tiktoken sentence_transformers tqdm
+
     separators = ["\n\n", "\n", " ", "", "#", "##", "###"]
     text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
         model_name="gpt-4", separators=separators, chunk_size=200, chunk_overlap=30
     )
-        
-    data = load_dataset("mongodb/devcenter-articles", split="train", streaming=True)
-    data_head = data.take(20)
-    docs = pd.DataFrame(data_head).to_dict("records")
+    
+    # Load and process the PDF
+    pdf_loader = PyPDFLoader(link)
+    pages = pdf_loader.load_and_split()
+    
+    # Convert PDF pages to the required format
     split_docs = []
-    for doc in docs:
-        chunks = get_chunks(doc, "body",text_splitter)
+    for page in pages:
+        # Create a document structure with a unique identifier
+        doc = {
+            "body": page.page_content,
+            "metadata": page.metadata,
+            "source_id": f"{data.get('source_name', 'default')}_{page.metadata.get('page', 0)}"  # Create a unique identifier
+        }
+        chunks = get_chunks(doc, "body", text_splitter)
         split_docs.extend(chunks)
+
+    # Generate embeddings
     embedding_model = SentenceTransformer("thenlper/gte-small")
     embedded_docs = []
     for doc in tqdm(split_docs):
-        doc["embedding"] = get_embedding(doc["body"],embedding_model)
+        doc["embedding"] = get_embedding(doc["body"], embedding_model)
         embedded_docs.append(doc)
+
+    # Store in MongoDB
+    DB_NAME = "mongodb_rag_lab"
+    COLLECTION_NAME = collection_name
+    collection = mongodb_client[DB_NAME][COLLECTION_NAME]
+
+    # Create or update vector search index
+    try:
+        # Define vector search index model using collection name as index name
+        vector_search_model = {
+            "name": collection_name,  # Using collection_name as index name
+            "type": "vectorSearch",
+            "definition": {
+                "fields": [
+                    {
+                        "type": "vector",
+                        "path": "embedding",
+                        "numDimensions": 384,  # Dimension of gte-small embeddings
+                        "similarity": "cosine"
+                    }
+                ]
+            }
+        }
+        
+        # Create or update the search index
+        collection.create_search_index(vector_search_model)
+    except Exception as e:
+        print(f"Error creating vector search index: {str(e)}")
+
+    # Insert documents one by one, handling duplicates
+    successful_inserts = 0
+    duplicates = 0
+    
+    try:
+        for doc in embedded_docs:
+            try:
+                # Try to insert the document, if source_id already exists, update it
+                result = collection.update_one(
+                    {"source_id": doc["source_id"]},
+                    {"$set": doc},
+                    upsert=True
+                )
+                if result.upserted_id:
+                    successful_inserts += 1
+                else:
+                    duplicates += 1
+            except Exception as e:
+                print(f"Error processing document: {str(e)}")
+                continue
+                
+        return ApiResponse(
+            f"Data ingestion completed. Added {successful_inserts} new documents, updated {duplicates} existing documents",
+            HTTP_201_CREATED
+        )
+    
+    except Exception as e:
+        return ApiResponse(f"Error during data ingestion: {str(e)}", HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+def vector_search(user_query: str, collection_name) -> List[Dict]:
+    """
+    Retrieve relevant documents for a user query using vector search.
+
+    Args:
+    user_query (str): The user's query string.
+    collection_name (str): Name of the collection (also used as index name)
+
+    Returns:
+    list: A list of matching documents.
+    """
+    embedding_model = SentenceTransformer("thenlper/gte-small")
+    query_embedding = get_embedding(user_query, embedding_model)
+
+    pipeline = [
+        {
+            "$vectorSearch": {
+                "index": collection_name,  # Using collection_name as index name
+                "queryVector": query_embedding,
+                "path": "embedding",
+                "numCandidates": 150,
+                "limit": 5
+            }
+        },
+        {
+            "$project": {
+                "_id": 0,
+                "body": 1,
+                "score": {"$meta": "vectorSearchScore"}
+            }
+        }
+    ]
 
     DB_NAME = "mongodb_rag_lab"
     COLLECTION_NAME = collection_name
-    ATLAS_VECTOR_SEARCH_INDEX_NAME = "vector_index"
     collection = mongodb_client[DB_NAME][COLLECTION_NAME]
-    collection.delete_many({})
-    collection.insert_many(embedded_docs)
-    return ApiResponse("Data ingestion into MongoDB completed",HTTP_201_CREATED)
+    results = collection.aggregate(pipeline)
+    return list(results)
+
 def get_chunks(doc: Dict, text_field: str,text_splitter) -> List[Dict]:  
     text = doc[text_field]
     chunks = text_splitter.split_text(text)
