@@ -15,7 +15,8 @@ const groupSchema = new mongoose.Schema({
   }],
   notes:[
     {
-        type:String,
+        url:{type:String},
+        tag:{type:String},
     }
   ],
   leaderboard:[

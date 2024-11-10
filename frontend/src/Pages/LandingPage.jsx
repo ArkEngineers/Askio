@@ -3,9 +3,19 @@ import GoogleLogin from "../Components/GoogleLogin";
 import { Button, Card } from "@material-tailwind/react";
 import { FaGithub } from "react-icons/fa";
 import { useAuth } from "../Context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 function LandingPage() {
   const {setupUser}=useAuth();
+  const { user } = useAuth();
+  const navigate = useNavigate()
+  useEffect(() => {
+    console.log(user)
+    if(user){
+      navigate("/app")
+    }
+  },[user]);
+
   return (
     <div className="bg-grey-9 h-screen text-base-1 grid place-items-center">
       <Card color="gray" className="w-1/5 py-10 grid place-items-center gap-2 shadow-md shadow-grey-6">

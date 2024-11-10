@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   createBrowserRouter,
-  Navigate,
   RouterProvider,
+  Navigate
 } from "react-router-dom";
 import MainLayout from "./Pages/More/MainLayout";
 import LandingPage from "./Pages/LandingPage";
@@ -15,17 +15,26 @@ import Play from "./Components/Play";
 
 function App() {
   const { user } = useAuth();
+  const [loggedin,setLoggedIn]=useState(false);
+  console.log(loggedin)
+  useEffect(() => {
+    console.log(user)
+    if(user){
+      setLoggedIn(true)
+    }
+  },[user]);
+
   const router = createBrowserRouter([
     {
       path: "/",
-      element: <Navigate to={user?.length > 0 ? "/" : "/landing"} />,
+      element: <Navigate to={loggedin? "/app" : "/landing"} />,
     },
     {
       path: "/landing",
       element: <LandingPage />,
     },
     {
-      path: "/",
+      path: "/app",
       element: <MainLayout />,
       children: [
         {
@@ -41,11 +50,11 @@ function App() {
           element: <Askme />,
         },
         {
-          path: "puzzle/:slugs",
+          path: "/app/puzzle/:slugs",
           element: <Quiz />,
         },
         {
-          path: "play/:slugs",
+          path: "/app/play/:slugs",
           element: <Play />,
         },
       ],

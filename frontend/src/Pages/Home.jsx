@@ -1,6 +1,6 @@
 import React from "react";
 import FolderCard from "../Components/FolderCard";
-import { FaBook, FaFolder, FaQuestionCircle } from "react-icons/fa";
+import { FaBook, FaFolder, FaQuestionCircle, FaUpload } from "react-icons/fa";
 import QuizCard from "../Components/QuizCard";
 import Slider from "react-slick";
 import {
@@ -9,8 +9,10 @@ import {
   IoIosArrowForward,
 } from "react-icons/io";
 import ClassCard from "../Components/ClassCard";
+import { useAuth } from "../Context/AuthContext";
 
 const folderSettings = {
+  infinite: false,
   speed: 500,
   slidesToShow: 7,
   slidesToScroll: 1,
@@ -48,6 +50,7 @@ const folderSettings = {
   ],
 };
 const quizSettings = {
+  infinite: false,
   speed: 500,
   slidesToShow: 5,
   slidesToScroll: 1,
@@ -86,11 +89,14 @@ const quizSettings = {
 };
 
 function Home() {
+  const { user } = useAuth();
+  console.log("🚀 ~ Home ~ user:", user);
   return (
     <div className="px-20 pl-40 pt-20">
       <h2 className="text-3xl py-10 text-center font-semibold text-base-1">
-        Good morning, Azeem Idrisi
+        Hello, {user?.name}
       </h2>
+
       <div className="flex flex-col items-center justify-center pb-10">
         <div className="flex flex-col gap-y-4 w-full">
           <div className="px-4 flex gap-x-2 items-center w-full">

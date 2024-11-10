@@ -22,10 +22,14 @@ RAG=Blueprint("RAG",__name__,url_prefix="/api/v1/RAG")
 
 
 @RAG.route("/",methods=['POST'])
+<<<<<<< HEAD
 def rag_index():
     data=request.get_json()
     collection_name=data["collection_name"]
     print(mongodb_client)
+=======
+def rag_index(collection_name):
+>>>>>>> 42b5243fd7bcfd482750c7cd06d25e0044f2416a
 #! pip install -qU pymongo datasets langchain fireworks-ai tiktoken sentence_transformers tqdm
     separators = ["\n\n", "\n", " ", "", "#", "##", "###"]
     text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(

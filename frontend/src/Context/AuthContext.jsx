@@ -11,7 +11,7 @@ const AuthContext = createContext({
 // Provide the context to your application
 export const AuthProvider = ({ children }) => {
   // State to manage whether the user is on the "Login" or "Register" page
-  const [user, setUser] = useState();
+  const [user, setUser] = useState(null);
   const [selectedModule, setModule] = useState();
 
   function setupUser(data) {
