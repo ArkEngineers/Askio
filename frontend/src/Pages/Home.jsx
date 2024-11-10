@@ -168,6 +168,7 @@ function Home() {
                     title={classData.groupName}
                     date={classData.created_At}
                     faculty={classData?.faculty?.name}
+                    classId={classData?._id}
                   />
                 ))}
             </Slider>
