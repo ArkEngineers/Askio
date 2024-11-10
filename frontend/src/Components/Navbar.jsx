@@ -66,6 +66,7 @@ function Navbar() {
       setCategory("");
       setIsCustomCategory(false);
 
+      console.log(response.data.url);
       if (response.status === 200) {
         const rag_response = await axios.post(`${RAG_ROUTE}`, {
           collection_name: "AI",

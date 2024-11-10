@@ -1,11 +1,27 @@
-from flask import Blueprint,request,jsonify,url_for,redirect,make_response,render_template
+from flask import (
+    Blueprint,
+    request,
+    jsonify,
+    url_for,
+    redirect,
+    make_response,
+    render_template,
+)
 from models import User
 from constants.https_status_codes import *
-from config import db,jwt,mongodb_client
+from config import db, jwt, mongodb_client
 import validators
-from flask_jwt_extended import create_access_token,jwt_required,set_access_cookies,create_refresh_token,set_refresh_cookies,get_jwt_identity,unset_jwt_cookies
-from utils.ApiError import ApiError 
-from utils.ApiResponse import ApiResponse 
+from flask_jwt_extended import (
+    create_access_token,
+    jwt_required,
+    set_access_cookies,
+    create_refresh_token,
+    set_refresh_cookies,
+    get_jwt_identity,
+    unset_jwt_cookies,
+)
+from utils.ApiError import ApiError
+from utils.ApiResponse import ApiResponse
 from utils.RenderResponse import RenderResponse
 import os
 import pandas as pd
@@ -19,25 +35,25 @@ from flask import request
 from fireworks.client import Fireworks
 from langchain.document_loaders import PyPDFLoader
 
-RAG=Blueprint("RAG",__name__,url_prefix="/api/v1/RAG")
+RAG = Blueprint("RAG", __name__, url_prefix="/api/v1/RAG")
 
 
-@RAG.route("/",methods=['POST'])
+@RAG.route("/", methods=["POST"])
 def rag_index():
     data = request.get_json()
     collection_name = data["collection_name"]
-    link=data["url"]
+    # link=data["url"]
     print(mongodb_client)
 
     separators = ["\n\n", "\n", " ", "", "#", "##", "###"]
     text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
         model_name="gpt-4", separators=separators, chunk_size=200, chunk_overlap=30
     )
-    
+
     # Load and process the PDF
-    pdf_loader = PyPDFLoader(link)
+    pdf_loader = PyPDFLoader("https://icseindia.org/document/sample.pdf")
     pages = pdf_loader.load_and_split()
-    
+
     # Convert PDF pages to the required format
     split_docs = []
     for page in pages:
@@ -45,7 +61,7 @@ def rag_index():
         doc = {
             "body": page.page_content,
             "metadata": page.metadata,
-            "source_id": f"{data.get('source_name', 'default')}_{page.metadata.get('page', 0)}"  # Create a unique identifier
+            "source_id": f"{data.get('source_name', 'default')}_{page.metadata.get('page', 0)}",  # Create a unique identifier
         }
         chunks = get_chunks(doc, "body", text_splitter)
         split_docs.extend(chunks)
@@ -74,12 +90,12 @@ def rag_index():
                         "type": "vector",
                         "path": "embedding",
                         "numDimensions": 384,  # Dimension of gte-small embeddings
-                        "similarity": "cosine"
+                        "similarity": "cosine",
                     }
                 ]
-            }
+            },
         }
-        
+
         # Create or update the search index
         collection.create_search_index(vector_search_model)
     except Exception as e:
@@ -88,15 +104,13 @@ def rag_index():
     # Insert documents one by one, handling duplicates
     successful_inserts = 0
     duplicates = 0
-    
+
     try:
         for doc in embedded_docs:
             try:
                 # Try to insert the document, if source_id already exists, update it
                 result = collection.update_one(
-                    {"source_id": doc["source_id"]},
-                    {"$set": doc},
-                    upsert=True
+                    {"source_id": doc["source_id"]}, {"$set": doc}, upsert=True
                 )
                 if result.upserted_id:
                     successful_inserts += 1
@@ -105,14 +119,16 @@ def rag_index():
             except Exception as e:
                 print(f"Error processing document: {str(e)}")
                 continue
-                
+
         return ApiResponse(
             f"Data ingestion completed. Added {successful_inserts} new documents, updated {duplicates} existing documents",
-            HTTP_201_CREATED
+            HTTP_201_CREATED,
         )
-    
+
     except Exception as e:
-        return ApiResponse(f"Error during data ingestion: {str(e)}", HTTP_500_INTERNAL_SERVER_ERROR)
+        return ApiResponse(
+            f"Error during data ingestion: {str(e)}", HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 def vector_search(user_query: str, collection_name) -> List[Dict]:
@@ -136,16 +152,10 @@ def vector_search(user_query: str, collection_name) -> List[Dict]:
                 "queryVector": query_embedding,
                 "path": "embedding",
                 "numCandidates": 150,
-                "limit": 5
+                "limit": 5,
             }
         },
-        {
-            "$project": {
-                "_id": 0,
-                "body": 1,
-                "score": {"$meta": "vectorSearchScore"}
-            }
-        }
+        {"$project": {"_id": 0, "body": 1, "score": {"$meta": "vectorSearchScore"}}},
     ]
 
     DB_NAME = "mongodb_rag_lab"
@@ -154,24 +164,25 @@ def vector_search(user_query: str, collection_name) -> List[Dict]:
     results = collection.aggregate(pipeline)
     return list(results)
 
-def get_chunks(doc: Dict, text_field: str,text_splitter) -> List[Dict]:  
+
+def get_chunks(doc: Dict, text_field: str, text_splitter) -> List[Dict]:
     text = doc[text_field]
     chunks = text_splitter.split_text(text)
     chunked_data = []
     for chunk in chunks:
         temp = doc.copy()
-        temp[text_field]=chunk
+        temp[text_field] = chunk
         chunked_data.append(temp)
 
     return chunked_data
 
 
-
-def get_embedding(text: str,embedding_model) -> List[float]:
+def get_embedding(text: str, embedding_model) -> List[float]:
     embedding = embedding_model.encode(text)
     return embedding.tolist()
-def vector_search(user_query: str,collection_name) -> List[Dict]:
-    
+
+
+def vector_search(user_query: str, collection_name) -> List[Dict]:
     """
     Retrieve relevant documents for a user query using vector search.
 
@@ -184,32 +195,24 @@ def vector_search(user_query: str,collection_name) -> List[Dict]:
     embedding_model = SentenceTransformer("thenlper/gte-small")
 
     # Generate embedding for the `user_query` using the `get_embedding` function defined in Step 5
-    query_embedding = get_embedding(user_query,embedding_model)
-
-
+    query_embedding = get_embedding(user_query, embedding_model)
 
     # Define an aggregation pipeline consisting of a $vectorSearch stage, followed by a $project stage
     # Set the number of candidates to 150 and only return the top 5 documents from the vector search
     # In the $project stage, exclude the `_id` field and include only the `body` field and `vectorSearchScore`
     # NOTE: Use variables defined previously for the `index`, `queryVector` and `path` fields in the $vectorSearch stage
     pipeline = [
-    {
-        "$vectorSearch": {
-            "index": collection_name,
-            "queryVector": query_embedding,
-            "path": "embedding",
-            "numCandidates": 150,
-            "limit": 5
-        }
-    },
-    {
-        "$project": {
-            "_id": 0,
-            "body": 1,
-            "score": {"$meta": "vectorSearchScore"}
-        }
-    }
-]
+        {
+            "$vectorSearch": {
+                "index": collection_name,
+                "queryVector": query_embedding,
+                "path": "embedding",
+                "numCandidates": 150,
+                "limit": 5,
+            }
+        },
+        {"$project": {"_id": 0, "body": 1, "score": {"$meta": "vectorSearchScore"}}},
+    ]
 
     # Execute the aggregation `pipeline` and store the results in `results`
     DB_NAME = "mongodb_rag_lab"
@@ -217,7 +220,9 @@ def vector_search(user_query: str,collection_name) -> List[Dict]:
     collection = mongodb_client[DB_NAME][COLLECTION_NAME]
     results = collection.aggregate(pipeline)
     return list(results)
-def create_prompt(user_query: str,collection_name) -> str:
+
+
+def create_prompt(user_query: str, collection_name) -> str:
     """
     Create a chat prompt that includes the user query and retrieved context.
 
@@ -228,34 +233,31 @@ def create_prompt(user_query: str,collection_name) -> str:
         str: The chat prompt string.
     """
     # Retrieve the most relevant documents for the `user_query` using the `vector_search` function defined in Step 8
-    context = vector_search(user_query,collection_name)
-
+    context = vector_search(user_query, collection_name)
 
     # Join the retrieved documents into a single string, where each document is separated by two new lines ("\n\n")
-    context = "\n\n".join([doc.get('body') for doc in context])
+    context = "\n\n".join([doc.get("body") for doc in context])
     # Prompt consisting of the question and relevant context to answer it
     prompt = f"Answer the question based only on the following context. If the context is empty, say I DON'T KNOW\n\nContext:\n{context}\n\nQuestion:{user_query}"
     return prompt
-@RAG.route("/query",methods=['POST'])
+
+
+@RAG.route("/query", methods=["POST"])
 def rag_query():
-    data=request.get_json()
-    query=data["query"]
-    collection_name=data["collection_name"]
-    
+    data = request.get_json()
+    query = data["query"]
+    collection_name = data["collection_name"]
+
     fw_client = Fireworks()
     model = "accounts/fireworks/models/llama-v3-8b-instruct"
-    prompt = create_prompt(query,collection_name)
-
-
+    prompt = create_prompt(query, collection_name)
 
     # Use the `prompt` created above to populate the `content` field in the chat message
     response = fw_client.chat.completions.create(
-    model=model,
-    messages=[{"role": "user", "content": prompt}]
-)
+        model=model, messages=[{"role": "user", "content": prompt}]
+    )
     # Print the final answer
-    return ApiResponse("Response",HTTP_200_OK ,response.choices[0].message.content)
-
+    return ApiResponse("Response", HTTP_200_OK, response.choices[0].message.content)
 
 
 # model = {
@@ -276,7 +278,7 @@ def rag_query():
 
 # # Step 8: Perform semantic search on your data
 
-# def vector_search(user_query: str) -> List[Dict]:  
+# def vector_search(user_query: str) -> List[Dict]:
 #     query_embedding = get_embedding(user_query)
 #     pipeline = [
 #     {
@@ -306,7 +308,6 @@ def rag_query():
 # vector_search("What is MongoDB Atlas Search?")
 
 # vector_search("What are triggers in MongoDB Atlas?")
-
 
 
 # # Modify the vector search index `model` (from Step 7) to include the `metadata.contentType` field as a `filter` field
@@ -468,7 +469,7 @@ def rag_query():
 
 # # Add a re-ranking step to the following function
 # def create_prompt(user_query: str) -> str:
-    
+
 #     context = vector_search(user_query)
 #     documents = [d.get("body") for d in context]
 #     reranked_documents = rerank_model.rank(
@@ -482,10 +483,9 @@ def rag_query():
 # generate_answer("What are triggers in MongoDB Atlas?")
 
 
-
 # # Define a function to answer user queries in streaming mode using Fireworks' Chat Completion API
 # def generate_answer(user_query: str) -> None:
-   
+
 #     # Use the `create_prompt` function defined in Step 9 to create a chat prompt
 #     prompt = create_prompt(user_query)
 
@@ -526,11 +526,10 @@ def rag_query():
 #     history_collection.insert_one(message)
 
 
-
 # def retrieve_session_history(session_id: str) -> List:
 #     cursor =  history_collection.find({"session_id": session_id}).sort("timestamp", 1)
 #     if cursor:
-        
+
 #         messages = [{"role": msg["role"], "content": msg["content"]} for msg in cursor]
 #     else:
 #         messages = []
@@ -538,9 +537,8 @@ def rag_query():
 #     return messages
 
 
-
 # def generate_answer(session_id: str, user_query: str) -> None:
-  
+
 #     # Initialize list of messages to pass to the chat completion model
 #     messages = []
 
