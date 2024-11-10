@@ -1,5 +1,5 @@
 import { Avatar } from "@material-tailwind/react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FiMenu } from "react-icons/fi";
 import { SlOptions } from "react-icons/sl";
 import { MdOutlineKeyboardArrowRight } from "react-icons/md";
@@ -9,9 +9,14 @@ import { Link, useLocation } from "react-router-dom";
 function Navbar() {
   const { user } = useAuth();
   const location = useLocation();
-
+const [image,setImage] =useState(null)
+useEffect(()=>{
+  if(user){
+    setImage(user?.image)
+  }
+},[user])
   const isActive = (path) => location.pathname.includes(path);
-
+  console.log("Image",image)
   // Check if the route includes "notes" or "askme"
   const isNotesOrAskMeRoute = location.pathname.includes("notes") || location.pathname.includes("askme");
 
@@ -38,7 +43,7 @@ function Navbar() {
           <Avatar
             size="sm"
             src={
-              user?.image ||
+              user?.image?user?.image:
               "https://cdn-icons-png.flaticon.com/512/149/149071.png"
             }
             alt="avatar"

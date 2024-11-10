@@ -20,8 +20,8 @@ from datasets import load_dataset
 RAG=Blueprint("RAG",__name__,url_prefix="/api/v1/RAG")
 
 
-@RAG.route("/",methods=['GET'])
-def rag_index(docs,collection_name):
+@RAG.route("/",methods=['POST'])
+def rag_index(collection_name):
 #! pip install -qU pymongo datasets langchain fireworks-ai tiktoken sentence_transformers tqdm
     separators = ["\n\n", "\n", " ", "", "#", "##", "###"]
     text_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(

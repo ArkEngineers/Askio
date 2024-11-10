@@ -4,6 +4,7 @@ import authController from "../controllers/auth.controllers.js";
 import googleAuth from "../controllers/auth.controllers.js";
 import QuizController from "../controllers/quiz.controllers.js";
 import ClassController from "../controllers/group.controllers.js";
+import authMiddleware from "../middlewares/authMiddleware.js";
 
 const Router = express.Router();
 
