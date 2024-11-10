@@ -10,24 +10,27 @@ import { FaUpload } from "react-icons/fa";
 function Navbar() {
   const { user } = useAuth();
   const location = useLocation();
-const [image,setImage] =useState(null)
-useEffect(()=>{
-  if(user){
-    setImage(user?.image)
-  }
-},[user])
+  const [image, setImage] = useState(null);
+  useEffect(() => {
+    if (user) {
+      setImage(user?.image);
+    }
+  }, [user]);
   const isActive = (path) => location.pathname.includes(path);
-  console.log("Image",image)
+  console.log("Image", image);
   // Check if the route includes "notes" or "askme"
-  const isNotesOrAskMeRoute = location.pathname.includes("notes") || location.pathname.includes("askme");
+  const isNotesOrAskMeRoute =
+    location.pathname.includes("notes") || location.pathname.includes("askme");
 
   return (
     <>
-      <div className='fixed z-20 top-0 w-full text-base-2 bg-grey-9 py-4 flex justify-between px-4 items-center border-b border-gray-800'>
-        <div className='flex gap-8 items-start'>
-          <FiMenu className='text-2xl cursor-pointer mt-1' />
-          <div className='flex justify-between items-start'>
-            <Link to="/app/"><h1 className='font-bold text-3xl text-base-1'>Askio</h1></Link>
+      <div className="fixed z-20 top-0 w-full text-base-2 bg-grey-9 py-4 flex justify-between px-4 items-center border-b border-gray-800">
+        <div className="flex gap-8 items-start">
+          <FiMenu className="text-2xl cursor-pointer mt-1" />
+          <div className="flex justify-between items-center gap-x-2">
+            <Link to="/app/">
+              <h1 className="font-bold text-3xl text-base-1">Askio</h1>
+            </Link>
             {isNotesOrAskMeRoute && (
               <>
                 <MdOutlineKeyboardArrowRight className="text-2xl mt-1 text-base-1 cursor-pointer" />
@@ -40,13 +43,17 @@ useEffect(()=>{
           </div>
         </div>
         <div className="flex gap-4 items-center">
-        <button className="px-4 py-2 rounded-lg bg-base-3 text-base-1 flex gap-2 items-center"><FaUpload/>Upload </button>
+          <button className="px-4 py-2 rounded-full bg-base-3 hover:bg-base-2 transition-all duration-300 text-base-1 flex gap-2 items-center text-xs">
+            <FaUpload />
+            Upload
+          </button>
           <SlOptions className="text-xl cursor-pointer" />
           <Avatar
             size="sm"
             src={
-              user?.image?user?.image:
-              "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+              user?.image
+                ? user?.image
+                : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
             }
             alt="avatar"
           />
