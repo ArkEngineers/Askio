@@ -1,6 +1,3 @@
-Here’s a comprehensive `README.md` template for your app **ASKIo**:
-
----
 
 # **ASKIo**
 
