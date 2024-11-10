@@ -74,8 +74,8 @@ function Navbar() {
           <Avatar
             size="sm"
             src={
-              user?.image
-                ? user?.image
+              image
+                ? image
                 : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
             }
             alt="avatar"
