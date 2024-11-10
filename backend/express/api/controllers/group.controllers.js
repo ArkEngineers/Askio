@@ -1,5 +1,6 @@
 import Group from "../models/classModel.js";
 import User from "../models/userModel.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 class ClassController {
   
@@ -103,15 +104,15 @@ class ClassController {
   static async updateParticipants(req, res) {
     try {
       const { groupId } = req.params;
-      const { userIds } = req.body;
-
+      const { userEmail } = req.body;
+      const userIds=await User.findOne({email:userEmail}).select("_id");
       const group = await Group.findById(groupId);
       if (!group) {
         return res.status(404).json({ error: "Group not found" });
       }
 
       // Update the userAdded array in the group
-      group.userAdded = userIds;
+      group.userAdded.push(userIds._id);
       await group.save();
 
       // Update each user's groupAdded field
@@ -129,16 +130,15 @@ class ClassController {
   // Fetch classes for a specific user
   static async fetchUserClasses(req, res) {
     try {
-      const userId = req.params.userId;
+      const {userEmail}=req.params;
 
       // Check if user exists
-      const user = await User.findById(userId);
-      if (!user) {
+      const userId = await User.findOne({email:userEmail}).select("_id");
+      if (!userId) {
         return res.status(404).json({ error: "User not found" });
       }
-
       // Find all classes where this user is enrolled
-      const userClasses = await Group.find({ userAdded: userId })
+      const userClasses = await Group.find({ userAdded:userId._id })
         .populate("faculty", "name email") // Populate faculty info
         .populate("userAdded", "name email") // Populate enrolled users info
         .populate("quiz", "title"); // Populate quizzes info
@@ -148,6 +148,52 @@ class ClassController {
       res.status(500).json({ error: "Error fetching user's classes" });
     }
   }
+
+  static async addPDFNoteToGroup(req, res) {
+    const { groupId } = req.params;
+    const {userEmail,tag}=req.body;
+    const facultyId=await User.findOne({email:userEmail}).select("_id")
+    const pdfFile = req.file; // PDF file uploaded
+  
+    // Check if the group exists
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return res.status(500).json({error:"Couldn't find group"})
+    }
+  
+    // Check if the authenticated user is the faculty of the group
+    if (group.faculty._id.toString() !== facultyId._id.toString()) {
+      return res.status(403).json({error:"Only the faculty can add notes"})
+
+    }
+  
+    // Verify if PDF file is provided
+    if (!pdfFile) {
+      return res.status(403).json({error:"PDF File not found"})
+
+    }
+  
+    // Add PDF file path to group's notes (e.g., pdfFile.path if stored locally)
+    const groupUrlPath = pdfFile?.path; //path in local server not on cloudinary
+    // console.log(req.files)
+    if (!groupUrlPath) throw new ApiError(400, "file is required");
+
+    const groupUrl = await uploadOnCloudinary(groupUrlPath)
+    if (!groupUrl) throw new ApiError(400, "File not found");
+    group.notes.push({
+      url: groupUrl.url,
+      tag: tag || "untagged", // Default tag if none provided
+    });
+  
+    // Save updated group
+    await group.save();
+  
+    return res.status(200).json({});
+  };
 }
+
+// Controller to add PDF notes to a group (class)
+
+
 
 export default ClassController;
