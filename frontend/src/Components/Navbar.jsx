@@ -6,6 +6,17 @@ import { MdOutlineKeyboardArrowRight } from "react-icons/md";
 import { useAuth } from "../Context/AuthContext";
 import { Link, useLocation } from "react-router-dom";
 import { FaUpload } from "react-icons/fa";
+import {
+  Button,
+  Dialog,
+  Card,
+  CardHeader,
+  CardBody,
+  CardFooter,
+  Typography,
+  Input,
+  Checkbox,
+} from "@material-tailwind/react";
 
 function Navbar() {
   const { user } = useAuth();
@@ -22,6 +33,15 @@ function Navbar() {
   const isNotesOrAskMeRoute =
     location.pathname.includes("notes") || location.pathname.includes("askme");
 
+  const [open, setOpen] = React.useState(false);
+  const handleOpen = () => setOpen((cur) => !cur);
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [category, setCategory] = useState("");
+  const handleCategoryChange = (e) => {
+    const value = e.target.value;
+    setCategory(value);
+    setIsCustomCategory(value === "custom");
+  };
   return (
     <>
       <div className="fixed z-20 top-0 w-full text-base-2 bg-grey-9 py-4 flex justify-between px-4 items-center border-b border-gray-800">
@@ -43,7 +63,10 @@ function Navbar() {
           </div>
         </div>
         <div className="flex gap-4 items-center">
-          <button className="px-4 py-2 rounded-full bg-base-3 hover:bg-base-2 transition-all duration-300 text-base-1 flex gap-2 items-center text-xs">
+          <button
+            onClick={handleOpen}
+            className="px-4 py-2 rounded-full bg-base-3 hover:bg-base-2 transition-all duration-300 text-base-1 flex gap-2 items-center text-xs"
+          >
             <FaUpload />
             Upload
           </button>
@@ -51,14 +74,76 @@ function Navbar() {
           <Avatar
             size="sm"
             src={
-              user?.image
-                ? user?.image
+              image
+                ? image
                 : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
             }
             alt="avatar"
           />
         </div>
       </div>
+      <Dialog
+        size="xs"
+        open={open}
+        handler={handleOpen}
+        className="bg-transparent shadow-none"
+      >
+        <Card className="mx-auto w-full max-w-[24rem]">
+          <CardBody className="flex flex-col gap-4">
+            <Typography variant="h4" color="blue-gray">
+              Add a new file
+            </Typography>
+            <Typography
+              className="mb-3 font-normal"
+              variant="paragraph"
+              color="gray"
+            >
+              Select a PDF to upload in your collections
+            </Typography>
+            <Typography className="-mb-2" variant="h6">
+              Upload PDF
+            </Typography>
+            <input type="file" accept=".pdf" />
+
+            <Typography className="-mb-2" variant="h6">
+              Select Category
+            </Typography>
+            <select
+              className="w-full p-2 border rounded-lg"
+              value={category}
+              onChange={handleCategoryChange}
+            >
+              <option value="">Select a Category</option>
+              <option value="DBMS">DBMS</option>
+              <option value="OS">Operating Systems</option>
+              <option value="Networks">Networks</option>
+              <option value="AI">Artificial Intelligence</option>
+              <option value="ML">Machine Learning</option>
+              <option value="custom">Other (Specify)</option>
+            </select>
+
+            {isCustomCategory && (
+              <input
+                type="text"
+                placeholder="Enter custom category"
+                className="w-full p-2 border rounded-lg mt-2"
+                onChange={(e) => setCategory(e.target.value)}
+              />
+            )}
+          </CardBody>
+          <CardFooter className="pt-0">
+            <Button
+              variant="gradient"
+              color="purple"
+              onClick={handleOpen}
+              fullWidth
+            >
+              Submit
+            </Button>
+          </CardFooter>
+        </Card>
+      </Dialog>
+
       {isNotesOrAskMeRoute && (
         <div className="border-b z-10 bg-grey-9 fixed top-20 left-20 px-12 text-lg w-full flex gap-4 text-grey-2 border-grey-6">
           <Link to="/app/classa/notes">

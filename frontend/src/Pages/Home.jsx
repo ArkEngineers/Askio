@@ -9,6 +9,7 @@ import {
   IoIosArrowForward,
 } from "react-icons/io";
 import ClassCard from "../Components/ClassCard";
+import { useAuth } from "../Context/AuthContext";
 
 const folderSettings = {
   infinite: false,
@@ -88,10 +89,12 @@ const quizSettings = {
 };
 
 function Home() {
+  const { user } = useAuth();
+  console.log("🚀 ~ Home ~ user:", user);
   return (
     <div className="px-20 pl-40 pt-20">
       <h2 className="text-3xl py-10 text-center font-semibold text-base-1">
-        Good morning, Azeem Idrisi
+        Hello, {user?.name}
       </h2>
 
       <div className="flex flex-col items-center justify-center pb-10">
