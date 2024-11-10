@@ -15,12 +15,17 @@ from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 import pandas as pd
 from datasets import load_dataset
-
+from flask import request
+from fireworks.client import Fireworks
 
 RAG=Blueprint("RAG",__name__,url_prefix="/api/v1/RAG")
 
 
 @RAG.route("/",methods=['POST'])
+def rag_index():
+    data=request.get_json()
+    collection_name=data["collection_name"]
+    print(mongodb_client)
 def rag_index(collection_name):
 #! pip install -qU pymongo datasets langchain fireworks-ai tiktoken sentence_transformers tqdm
     separators = ["\n\n", "\n", " ", "", "#", "##", "###"]
@@ -31,7 +36,6 @@ def rag_index(collection_name):
     data = load_dataset("mongodb/devcenter-articles", split="train", streaming=True)
     data_head = data.take(20)
     docs = pd.DataFrame(data_head).to_dict("records")
-
     split_docs = []
     for doc in docs:
         chunks = get_chunks(doc, "body",text_splitter)
@@ -41,7 +45,6 @@ def rag_index(collection_name):
     for doc in tqdm(split_docs):
         doc["embedding"] = get_embedding(doc["body"],embedding_model)
         embedded_docs.append(doc)
-    len(embedded_docs)
 
     DB_NAME = "mongodb_rag_lab"
     COLLECTION_NAME = collection_name
@@ -49,8 +52,7 @@ def rag_index(collection_name):
     collection = mongodb_client[DB_NAME][COLLECTION_NAME]
     collection.delete_many({})
     collection.insert_many(embedded_docs)
-    print("Data ingestion into MongoDB completed")
-
+    return ApiResponse("Data ingestion into MongoDB completed",HTTP_201_CREATED)
 def get_chunks(doc: Dict, text_field: str,text_splitter) -> List[Dict]:  
     text = doc[text_field]
     chunks = text_splitter.split_text(text)
@@ -67,6 +69,91 @@ def get_chunks(doc: Dict, text_field: str,text_splitter) -> List[Dict]:
 def get_embedding(text: str,embedding_model) -> List[float]:
     embedding = embedding_model.encode(text)
     return embedding.tolist()
+def vector_search(user_query: str,collection_name) -> List[Dict]:
+    
+    """
+    Retrieve relevant documents for a user query using vector search.
+
+    Args:
+    user_query (str): The user's query string.
+
+    Returns:
+    list: A list of matching documents.
+    """
+    embedding_model = SentenceTransformer("thenlper/gte-small")
+
+    # Generate embedding for the `user_query` using the `get_embedding` function defined in Step 5
+    query_embedding = get_embedding(user_query,embedding_model)
+
+
+
+    # Define an aggregation pipeline consisting of a $vectorSearch stage, followed by a $project stage
+    # Set the number of candidates to 150 and only return the top 5 documents from the vector search
+    # In the $project stage, exclude the `_id` field and include only the `body` field and `vectorSearchScore`
+    # NOTE: Use variables defined previously for the `index`, `queryVector` and `path` fields in the $vectorSearch stage
+    pipeline = [
+    {
+        "$vectorSearch": {
+            "index": collection_name,
+            "queryVector": query_embedding,
+            "path": "embedding",
+            "numCandidates": 150,
+            "limit": 5
+        }
+    },
+    {
+        "$project": {
+            "_id": 0,
+            "body": 1,
+            "score": {"$meta": "vectorSearchScore"}
+        }
+    }
+]
+
+    # Execute the aggregation `pipeline` and store the results in `results`
+    DB_NAME = "mongodb_rag_lab"
+    COLLECTION_NAME = collection_name
+    collection = mongodb_client[DB_NAME][COLLECTION_NAME]
+    results = collection.aggregate(pipeline)
+    return list(results)
+def create_prompt(user_query: str,collection_name) -> str:
+    """
+    Create a chat prompt that includes the user query and retrieved context.
+
+    Args:
+        user_query (str): The user's query string.
+
+    Returns:
+        str: The chat prompt string.
+    """
+    # Retrieve the most relevant documents for the `user_query` using the `vector_search` function defined in Step 8
+    context = vector_search(user_query,collection_name)
+
+
+    # Join the retrieved documents into a single string, where each document is separated by two new lines ("\n\n")
+    context = "\n\n".join([doc.get('body') for doc in context])
+    # Prompt consisting of the question and relevant context to answer it
+    prompt = f"Answer the question based only on the following context. If the context is empty, say I DON'T KNOW\n\nContext:\n{context}\n\nQuestion:{user_query}"
+    return prompt
+@RAG.route("/query",methods=['POST'])
+def rag_query():
+    data=request.get_json()
+    query=data["query"]
+    collection_name=data["collection_name"]
+    
+    fw_client = Fireworks()
+    model = "accounts/fireworks/models/llama-v3-8b-instruct"
+    prompt = create_prompt(query,collection_name)
+
+
+
+    # Use the `prompt` created above to populate the `content` field in the chat message
+    response = fw_client.chat.completions.create(
+    model=model,
+    messages=[{"role": "user", "content": prompt}]
+)
+    # Print the final answer
+    return ApiResponse("Response",HTTP_200_OK ,response.choices[0].message.content)
 
 
 
