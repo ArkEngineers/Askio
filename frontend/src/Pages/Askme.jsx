@@ -6,7 +6,7 @@ import { MdCancel } from "react-icons/md";
 import { CgFileAdd } from "react-icons/cg";
 import { useAuth } from "../Context/AuthContext";
 import axios from "axios";
-import { AUTH_ROUTE } from "../services/constants";
+import { AUTH_ROUTE, QUERY_ROUTE } from "../services/constants";
 
 function Askme() {
   const [text, setText] = useState("");
@@ -35,6 +35,7 @@ function Askme() {
   const removeTag = (tag) => {
     setSelectedTags(selectedTags.filter((t) => t !== tag));
   };
+
   // Detect clicks outside the SearchPalette component
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -136,6 +137,21 @@ const SearchPalette = ({ selectedTags, setSelectedTags, colorTags }) => {
     setSelectedTags(selectedTags.filter((t) => t !== tag));
   };
 
+  async function handleClick(e) {
+    e.preventDefault();
+    try {
+      const response = await axios.post(QUERY_ROUTE, {
+        query: text,
+        collection_name: "ML",
+      });
+      console.log(response.data); // Log the response data
+      setChat([...chat, text]); // Add the text to chat after successful API call
+      setText("");
+    } catch (error) {
+      console.error("Error fetching data:", error); // Log any error
+    }
+  }
+
   return (
     <div className="relative w-full" ref={dropdownRef}>
       <div
@@ -197,10 +213,19 @@ function Chatarea({ text, setText, chat, setChat }) {
     setText(e.target.value);
   }
 
-  function handelClick(e) {
+  async function handelClick(e) {
     e.preventDefault();
-    setChat([...chat, text]);
-    setText("");
+    try {
+      const response = await axios.post(QUERY_ROUTE, {
+        query: text,
+        collection_name: "AI",
+      });
+      console.log(response.data); // Log the response data
+      setChat([...chat, text]); // Add the text to chat after successful API call
+      setText("");
+    } catch (error) {
+      console.error("Error fetching data:", error); // Log any error
+    }
   }
   return (
     <div className="flex w-full px-4 flex-row items-center gap-2 rounded-[99px] border-2 border-base-2 bg-grey-9 full ">

@@ -148,7 +148,7 @@ def vector_search(user_query: str, collection_name) -> List[Dict]:
     pipeline = [
         {
             "$vectorSearch": {
-                "index": collection_name,  # Using collection_name as index name
+                "index": "vector_index1",  # Using collection_name as index name
                 "queryVector": query_embedding,
                 "path": "embedding",
                 "numCandidates": 150,
