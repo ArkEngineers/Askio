@@ -1,3 +1,11 @@
+import {
+  Button,
+  Dialog,
+  Card,
+  CardBody,
+  CardFooter,
+  Typography,
+} from "@material-tailwind/react";
 import { Avatar } from "@material-tailwind/react";
 import React, { useEffect, useState } from "react";
 import { FiMenu } from "react-icons/fi";
@@ -6,42 +14,77 @@ import { MdOutlineKeyboardArrowRight } from "react-icons/md";
 import { useAuth } from "../Context/AuthContext";
 import { Link, useLocation } from "react-router-dom";
 import { FaUpload } from "react-icons/fa";
-import {
-  Button,
-  Dialog,
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter,
-  Typography,
-  Input,
-  Checkbox,
-} from "@material-tailwind/react";
+import axios from "axios";
+import { AUTH_ROUTE, RAG_ROUTE } from "../services/constants";
 
 function Navbar() {
   const { user } = useAuth();
   const location = useLocation();
   const [image, setImage] = useState(null);
+  const [open, setOpen] = useState(false);
+  const [file, setFile] = useState(null);
+  const [category, setCategory] = useState("");
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+
   useEffect(() => {
     if (user) {
       setImage(user?.image);
     }
   }, [user]);
-  const isActive = (path) => location.pathname.includes(path);
-  console.log("Image", image);
-  // Check if the route includes "notes" or "askme"
-  const isNotesOrAskMeRoute =
-    location.pathname.includes("notes") || location.pathname.includes("askme");
 
-  const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen((cur) => !cur);
-  const [isCustomCategory, setIsCustomCategory] = useState(false);
-  const [category, setCategory] = useState("");
+
   const handleCategoryChange = (e) => {
     const value = e.target.value;
     setCategory(value);
     setIsCustomCategory(value === "custom");
   };
+
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
+
+  const handleSubmit = async () => {
+    if (!file || !category) {
+      alert("Please select a file and category.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("pdfFile", file);
+    formData.append("tag", category === "custom" ? category : "Other");
+    formData.append("userEmail", user?.email);
+    try {
+      const response = await axios.post(
+        `${AUTH_ROUTE}/group/67304142bad67a95759a95d2/notes`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
+      alert("File uploaded successfully!");
+      setOpen(false);
+      setFile(null);
+      setCategory("");
+      setIsCustomCategory(false);
+
+      console.log(response.data.url);
+      if (response.status === 200) {
+        const rag_response = await axios.post(`${RAG_ROUTE}`, {
+          collection_name: "AI",
+          url: response.data.url,
+        });
+
+        console.log(rag_response);
+      }
+    } catch (error) {
+      console.error("File upload failed:", error);
+      alert("An error occurred while uploading the file.");
+    }
+  };
+
+  const isActive = (path) => location.pathname.includes(path);
+  const isNotesOrAskMeRoute =
+    location.pathname.includes("notes") || location.pathname.includes("askme");
+
   return (
     <>
       <div className="fixed z-20 top-0 w-full text-base-2 bg-grey-9 py-4 flex justify-between px-4 items-center border-b border-gray-800">
@@ -82,6 +125,7 @@ function Navbar() {
           />
         </div>
       </div>
+
       <Dialog
         size="xs"
         open={open}
@@ -103,7 +147,7 @@ function Navbar() {
             <Typography className="-mb-2" variant="h6">
               Upload PDF
             </Typography>
-            <input type="file" accept=".pdf" />
+            <input type="file" accept=".pdf" onChange={handleFileChange} />
 
             <Typography className="-mb-2" variant="h6">
               Select Category
@@ -135,7 +179,7 @@ function Navbar() {
             <Button
               variant="gradient"
               color="purple"
-              onClick={handleOpen}
+              onClick={handleSubmit}
               fullWidth
             >
               Submit

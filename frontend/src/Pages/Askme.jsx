@@ -4,20 +4,9 @@ import { Textarea, Button, IconButton } from "@material-tailwind/react";
 import { IoMdSend } from "react-icons/io";
 import { MdCancel } from "react-icons/md";
 import { CgFileAdd } from "react-icons/cg";
-
-const colorTags = [
-  "Blue",
-  "Teal",
-  "Mint",
-  "Green",
-  "Sage",
-  "Yellow",
-  "Beige",
-  "Brown",
-  "Orange",
-  "Peach",
-  "Red",
-];
+import { useAuth } from "../Context/AuthContext";
+import axios from "axios";
+import { AUTH_ROUTE, QUERY_ROUTE } from "../services/constants";
 
 function Askme() {
   const [text, setText] = useState("");
@@ -25,10 +14,28 @@ function Askme() {
   const [modal, setModal] = useState(true);
   const searchRef = useRef(null);
   const [selectedTags, setSelectedTags] = useState([]);
+  const { selectedModule } = useAuth();
+  const [allNotes, setAllNotes] = useState([]);
+
+  const fetchAllNotes = async () => {
+    try {
+      const response = await axios.get(`${AUTH_ROUTE}/group/${selectedModule}`);
+      console.log(response.data);
+
+      if (response.status === 200) setAllNotes(response.data.notes);
+    } catch (error) {
+      console.log({ error });
+    }
+  };
+
+  useEffect(() => {
+    fetchAllNotes();
+  }, []);
 
   const removeTag = (tag) => {
     setSelectedTags(selectedTags.filter((t) => t !== tag));
   };
+
   // Detect clicks outside the SearchPalette component
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -65,7 +72,7 @@ function Askme() {
           {selectedTags.map((tag) => (
             <span
               key={tag}
-              className="bg-gray-200 w-20 justify-between px-3 text-gray-700 rounded-full py-1 mr-2 flex items-center"
+              className="bg-gray-200 w-fit justify-between px-3 text-gray-700 rounded-full py-1 mr-2 flex items-center"
             >
               {tag}
               <button
@@ -92,7 +99,7 @@ function Askme() {
           <SearchPalette
             selectedTags={selectedTags}
             setSelectedTags={setSelectedTags}
-            colorTags={colorTags}
+            colorTags={allNotes}
           />
         </div>
       )}
@@ -130,6 +137,21 @@ const SearchPalette = ({ selectedTags, setSelectedTags, colorTags }) => {
     setSelectedTags(selectedTags.filter((t) => t !== tag));
   };
 
+  async function handleClick(e) {
+    e.preventDefault();
+    try {
+      const response = await axios.post(QUERY_ROUTE, {
+        query: text,
+        collection_name: "ML",
+      });
+      console.log(response.data); // Log the response data
+      setChat([...chat, text]); // Add the text to chat after successful API call
+      setText("");
+    } catch (error) {
+      console.error("Error fetching data:", error); // Log any error
+    }
+  }
+
   return (
     <div className="relative w-full" ref={dropdownRef}>
       <div
@@ -139,7 +161,7 @@ const SearchPalette = ({ selectedTags, setSelectedTags, colorTags }) => {
         {selectedTags.map((tag) => (
           <span
             key={tag}
-            className="bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2 flex items-center"
+            className="bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2 flex items-center w-fit"
           >
             {tag}
             <button
@@ -168,13 +190,14 @@ const SearchPalette = ({ selectedTags, setSelectedTags, colorTags }) => {
         <div className="absolute top-full left-0 w-full bg-grey-9 border border-base-2 rounded-lg shadow-md mt-2 p-4">
           <div className="mb-4">
             <div className="flex flex-wrap mt-2">
+              {console.log(colorTags)}
               {colorTags.map((tag) => (
                 <span
-                  key={tag}
+                  key={tag.title}
                   className="bg-gray-100 text-gray-600 rounded-full px-3 py-1 m-1 cursor-pointer hover:bg-gray-200"
-                  onClick={() => handleTagClick(tag)}
+                  onClick={() => handleTagClick(tag.title)}
                 >
-                  {tag}
+                  {tag.title}
                 </span>
               ))}
             </div>
@@ -190,10 +213,19 @@ function Chatarea({ text, setText, chat, setChat }) {
     setText(e.target.value);
   }
 
-  function handelClick(e) {
+  async function handelClick(e) {
     e.preventDefault();
-    setChat([...chat, text]);
-    setText("");
+    try {
+      const response = await axios.post(QUERY_ROUTE, {
+        query: text,
+        collection_name: "AI",
+      });
+      console.log(response.data); // Log the response data
+      setChat([...chat, text]); // Add the text to chat after successful API call
+      setText("");
+    } catch (error) {
+      console.error("Error fetching data:", error); // Log any error
+    }
   }
   return (
     <div className="flex w-full px-4 flex-row items-center gap-2 rounded-[99px] border-2 border-base-2 bg-grey-9 full ">
@@ -202,7 +234,7 @@ function Chatarea({ text, setText, chat, setChat }) {
         value={text}
         resize={false}
         placeholder="Your Contexts"
-        className="min-h-full !border-0 focus:border-transparent"
+        className="min-h-full !border-0 focus:border-transparent text-white"
         containerProps={{
           className: "grid h-full",
         }}

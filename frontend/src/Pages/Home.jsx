@@ -99,7 +99,7 @@ function Home() {
       const response = await axios.get(
         `${AUTH_ROUTE}/group/user/${user?.email}/groups`
       );
-
+      console.log(response.data);
       if (response.status === 200) setAllclasses(response.data);
     } catch (error) {
       console.log({ error });
@@ -168,6 +168,7 @@ function Home() {
                     title={classData.groupName}
                     date={classData.created_At}
                     faculty={classData?.faculty?.name}
+                    classId={classData?._id}
                   />
                 ))}
             </Slider>
