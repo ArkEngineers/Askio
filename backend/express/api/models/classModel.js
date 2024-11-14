@@ -15,6 +15,7 @@ const groupSchema = new mongoose.Schema({
   }],
   notes:[
     {
+        title:{type:String},
         url:{type:String},
         tag:{type:String},
     }
@@ -38,6 +39,6 @@ const groupSchema = new mongoose.Schema({
     }
   ]
 
-});
+},{timestamps:true});
 
 export default new mongoose.model("Group", groupSchema);
