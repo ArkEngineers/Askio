@@ -142,6 +142,7 @@ class ClassController {
       if (!userId) {
         return res.status(404).json({ error: "User not found" });
       }
+      console.log(userId)
       // Find all classes where this user is enrolled
       const userClasses = await Group.find({ userAdded: userId._id })
         .populate("faculty", "name email") // Populate faculty info
@@ -152,6 +153,15 @@ class ClassController {
     } catch (error) {
       res.status(500).json({ error: "Error fetching user's classes" });
     }
+  }
+  static async fetchByGroupId(req,res){
+    const {groupId}=req.params;
+    const group = await Group.findOne({_id:groupId});
+    if (!group) {
+      return res.status(500).json({error:"Couldn't find group"})
+    }
+    return res.status(200).json(group);
+  
   }
 
   static async addPDFNoteToGroup(req, res) {
@@ -167,10 +177,11 @@ class ClassController {
     }
 
     // Check if the authenticated user is the faculty of the group
-    if (group.faculty._id.toString() !== facultyId._id.toString()) {
-      return res.status(403).json({ error: "Only the faculty can add notes" });
-    }
+    // if (group.faculty._id.toString() !== facultyId._id.toString()) {
+    //   return res.status(403).json({error:"Only the faculty can add notes"})
 
+    // }
+  
     // Verify if PDF file is provided
     if (!pdfFile) {
       return res.status(403).json({ error: "PDF File not found" });
@@ -184,16 +195,16 @@ class ClassController {
     const groupUrl = await uploadOnCloudinary(groupUrlPath);
     if (!groupUrl) throw new ApiError(400, "File not found");
     group.notes.push({
-      title: groupUrl.original_filename,
+      title:groupUrl.original_filename,
       url: groupUrl.url,
       tag: tag || "untagged", // Default tag if none provided
     });
 
     // Save updated group
     await group.save();
-
-    return res.status(200).json({});
-  }
+  
+    return res.status(200).json({"url":groupUrl.url});
+  };
 }
 
 // Controller to add PDF notes to a group (class)

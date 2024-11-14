@@ -11,9 +11,10 @@ const groupSchema = new mongoose.Schema({
   },
   userAdded: [
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
+        title:{type:String},
+        url:{type:String},
+        tag:{type:String},
+    }
   ],
   notes: [
     {
@@ -26,20 +27,11 @@ const groupSchema = new mongoose.Schema({
     {
       user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-      score: {
-        type: Number,
-        default: 0,
-      },
-    },
-  ],
-  quiz: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-  ],
-});
+        ref:"User"
+      }
+    }
+  ]
+
+},{timestamps:true});
 
 export default new mongoose.model("Group", groupSchema);

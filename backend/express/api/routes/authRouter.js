@@ -12,6 +12,7 @@ const Router = express.Router();
 Router.get("/auth/google", googleAuth);
 
 //group router
+Router.get("/group/:groupId",ClassController.fetchByGroupId)
 Router.post("/group/", ClassController.createClass);
 Router.get("/group/groups", ClassController.fetchAllClasses);
 Router.put("/class/:groupId/quiz", ClassController.updateQuiz);
