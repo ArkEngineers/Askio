@@ -19,10 +19,13 @@ function Askme() {
 
   const fetchAllNotes = async () => {
     try {
-      const response = await axios.get(`${AUTH_ROUTE}/group/${selectedModule}`);
-      console.log(response.data);
-
-      if (response.status === 200) setAllNotes(response.data.notes);
+      if (selectedModule) {
+        const response = await axios.get(
+          `${AUTH_ROUTE}/group/${selectedModule}`
+        );
+        console.log(response.data);
+        if (response.status === 200) setAllNotes(response.data.notes);
+      }
     } catch (error) {
       console.log({ error });
     }

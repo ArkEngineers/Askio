@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FaQuestionCircle } from "react-icons/fa";
 import QuizCard from "../Components/QuizCard";
 
 import { IoIosRocket } from "react-icons/io";
+import axios from "axios";
 
 function Quiz() {
   return (

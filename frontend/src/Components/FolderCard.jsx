@@ -3,7 +3,7 @@ import { useAuth } from "../Context/AuthContext";
 import { Link } from "react-router-dom";
 
 function FolderCard({ title, date }) {
-  const { setModule } = useAuth();
+  // const { setModule } = useAuth();
 
   function stringToSlug(str) {
     return str
@@ -14,7 +14,7 @@ function FolderCard({ title, date }) {
       .replace(/-+/g, "-"); // Replace multiple - with single -
   }
   const handleClick = () => {
-    setModule(stringToSlug(title));
+    // setModule(stringToSlug(title));
   };
 
   return (
