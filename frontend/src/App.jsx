@@ -6,23 +6,22 @@ import {
 } from "react-router-dom";
 import MainLayout from "./Pages/More/MainLayout";
 import LandingPage from "./Pages/LandingPage";
-import Notes from "./Pages/Notes";
 import Askme from "./Pages/Askme";
 import Home from "./Pages/Home";
 import { useAuth } from "./Context/AuthContext";
 import Quiz from "./Pages/Quiz";
 import Play from "./Components/Play";
+import Flashcards from "./Pages/Flashcard";
 
 function App() {
-  const { user } = useAuth();
-  const [loggedin,setLoggedIn]=useState(false);
-  console.log(loggedin)
-  useEffect(() => {
-    console.log(user)
-    if(user){
+  const { user,loggedin,setLoggedIn } = useAuth();
+  useEffect(()=>{
+    if (user!=null){
       setLoggedIn(true)
+    }else{
+      setLoggedIn(false)
     }
-  },[user]);
+  },[user])
 
   const router = createBrowserRouter([
     {
@@ -31,22 +30,22 @@ function App() {
     },
     {
       path: "/landing",
-      element: <LandingPage />,
+      element: loggedin?<Navigate to="/app"/>:<LandingPage />,
     },
     {
       path: "/app",
-      element: <MainLayout />,
+      element: loggedin?<MainLayout/>:<Navigate to="/landing"/>,
       children: [
         {
           path: "/app",
           element: <Home />, // Home must have <Outlet /> to render child components
         },
         {
-          path: "/app/:slugs/notes", // child route without leading slash
-          element: <Notes />,
+          path: "/app/flashcard", // child route without leading slash
+          element: <Flashcards />,
         },
         {
-          path: "/app/:slugs/askme", // child route without leading slash
+          path: "/app/askme", // child route without leading slash
           element: <Askme />,
         },
         {

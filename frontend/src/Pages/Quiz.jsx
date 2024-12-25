@@ -19,7 +19,7 @@ function Quiz() {
               Play quizzes to boost your score
             </p>
           </div>
-          <div className="flex w-full items-center flex-wrap gap-y-10">
+          <div className="grid grid-cols-5 w-full items-center flex-wrap gap-y-10">
             {[
               { title: "Maths Unit 1 Quiz", date: "22 Nov" },
               { title: "Physics Chapter 1 Test", date: "25 Nov" },

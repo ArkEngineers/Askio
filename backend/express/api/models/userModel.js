@@ -5,8 +5,7 @@ const userShema = new mongoose.Schema({
   email: String,
   image: String,
   groupAdded:[{
-    type: mongoose.Schema.Types.ObjectId,
-    ref:"Group"
+    type:String
   }]
 });
 

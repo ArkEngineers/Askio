@@ -18,8 +18,9 @@ const signToken = (id) => {
 };
 
 // Create and send cookie function
-const createSendToken = (user, statusCode, res) => {
+const createSendToken = (user,accessToken, statusCode, res) => {
   const token = signToken(user.id);
+  console.log("TOKEN: ",token)
 
   const cookieOptions = {
     expires: moment().add(1, "d").toDate(),
@@ -32,13 +33,11 @@ const createSendToken = (user, statusCode, res) => {
 
   user.password = undefined;
 
-  //   res.cookie("jwt", token, cookieOptions);
-  console.log(token);
-
-  res.status(200).cookie("jwt", token, cookieOptions).json({
+  return res.status(200).cookie("jwt", token, cookieOptions).json({
     message: "success",
     token,
     data: {
+      accessToken,
       user,
     },
   });
@@ -55,7 +54,8 @@ const googleAuth = asyncHandler(async (req, res, next) => {
   const userRes = await axios.get(
     `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${googleRes.tokens.access_token}`
   );
-
+  console.log(userRes.data)
+  console.log(googleRes.scopes)
   let user = await User.findOne({ email: userRes.data.email });
 
   if (!user) {
@@ -67,7 +67,7 @@ const googleAuth = asyncHandler(async (req, res, next) => {
     });
   }
 
-  createSendToken(user, 201, res);
+  createSendToken(user,googleRes.tokens.access_token, 201, res);
 });
 
 export default googleAuth;

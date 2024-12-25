@@ -3,7 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import connectDB from "./db/index.js";
-import authRouter from "./routes/authRouter.js";
+import { authRouter, classRouter, groupRouter, quizRouter } from "./routes/Routes.js";
 
 
 const app = express();
@@ -47,8 +47,9 @@ app.get("/", (req, res) => {
 
 // app.use(compression());
 
-app.use("/api/v1/", authRouter); // <- NEW LINE
-// app.use('/api/v1/', router);0
-// app.use("/api/v1/",Router) //http://localhost:8000/api/v1/users/register or users/login
+app.use("/api/v1/auth", authRouter); // <- NEW LINE
+app.use("/api/v1/quiz", quizRouter); 
+app.use("/api/v1/group", groupRouter); 
+app.use("/api/v1/class", classRouter); 
 
 export default app;
