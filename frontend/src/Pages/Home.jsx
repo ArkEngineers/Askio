@@ -11,7 +11,8 @@ import {
 import ClassCard from "../Components/ClassCard";
 import { useAuth } from "../Context/AuthContext";
 import axios from "axios";
-import { AUTH_ROUTE } from "../services/constants";
+import { AUTH_ROUTE, UPDATE_ASKIO_CLASS } from "../services/constants";
+import { Create_Classroom, List_Course_Button, LIST_FOLDERS_BUTTON, POST_COURSE } from "../Components/APIButtons";
 
 const folderSettings = {
   infinite: false,
@@ -91,7 +92,7 @@ const quizSettings = {
 };
 
 function Home() {
-  const { user } = useAuth();
+  const { user,newClass,setupUser ,classes,folders,setFolders} = useAuth();
   const [allclasses, setAllclasses] = useState(null);
 
   const fetchAllClasses = async () => {
@@ -105,9 +106,27 @@ function Home() {
       console.log({ error });
     }
   };
+  useEffect(()=>{
+    if(newClass!=null){
+      axios.post(UPDATE_ASKIO_CLASS,{
+        "email":user?.email,
+        "groupId":newClass?.id
+      })
+      .then(res=>{
+        console.log(res.data)
+        setupUser(res.data.data)
+      })
+      .catch(err=>{
+        console.log(err)
+      })
+    }
+    
+  },[newClass])
+  
 
   useEffect(() => {
     fetchAllClasses();
+    console.log(user)
   }, []);
   return (
     <div className="px-20 pl-40 pt-20">
@@ -122,32 +141,21 @@ function Home() {
             <p className="text-xs text-grey-1 w-full text-left font-bold">
               Your Folders
             </p>
+            {user?.groupAdded?<LIST_FOLDERS_BUTTON/>:<Create_Classroom/>}
+            {/* <POST_COURSE/> */}
           </div>
-          <div className="flex w-full items-center">
-            <Slider {...folderSettings} className="w-full">
-              {[
-                { title: "Software Engineering", date: "9 Nov" },
-                { title: "Artificial Intelligence", date: "18 Oct" },
-                { title: "DBMS", date: "29 Oct" },
-                { title: "Economics", date: "22 Oct" },
-                { title: "GATE Prep", date: "19 Nov" },
-                { title: "Machine Learning", date: "5 Dec" },
-                { title: "Data Structures", date: "12 Nov" },
-                { title: "Operating Systems", date: "17 Nov" },
-                { title: "Computer Networks", date: "30 Oct" },
-                { title: "Algorithms", date: "24 Nov" },
-                { title: "Discrete Mathematics", date: "2 Dec" },
-                { title: "Cloud Computing", date: "7 Dec" },
-                { title: "Cyber Security", date: "15 Dec" },
-                { title: "Human-Computer Interaction", date: "20 Dec" },
-              ].map((folder, index) => (
+          <div className="flex w-full items-center justify-center">
+            {folders.length>0?<Slider {...folderSettings} className="w-full">
+              {folders.length!=0 &&folders.map((folder, index) => (
                 <FolderCard
                   key={index}
-                  title={folder.title}
-                  date={folder.date}
+                  title={folder.name}
+                  topicId={folder.topicId}
+                  courseId={folder.courseId}
+                  date={folder.updateTime}
                 />
               ))}
-            </Slider>
+            </Slider>:<p className="text-sm text-grey-1 text-center ">No Folders Found</p>}
           </div>
         </div>
       </div>
@@ -158,20 +166,24 @@ function Home() {
             <p className="text-xs text-grey-1 w-full text-left font-semibold">
               Joined Classes
             </p>
+          <List_Course_Button/>
           </div>
-          <div className="flex w-full items-center">
-            <Slider {...quizSettings} className="w-full">
-              {allclasses &&
-                allclasses.map((classData, index) => (
+          <div className="flex w-full items-center justify-center">
+            {classes.length>0?<Slider {...quizSettings} className="w-full">
+              {classes.length!=0 &&
+                classes.map((classData, index) => (
                   <ClassCard
-                    key={index}
-                    title={classData.groupName}
-                    date={classData.created_At}
-                    faculty={classData?.faculty?.name}
+                    key={classData.id}
+                    title={classData.name}
+                    section={classData.section}
+                    ownerId={classData.ownerId}
+                    descriptionHeading={classData.descriptionHeading}
+                    alternateLink={classData.alternateLink}
+                    date={classData.creationTime}
                     classId={classData?._id}
                   />
                 ))}
-            </Slider>
+            </Slider>:<p className="text-sm text-grey-1 text-center ">No Classes Found</p>}
           </div>
         </div>
       </div>
@@ -179,7 +191,7 @@ function Home() {
         <div className="flex flex-col gap-y-4 w-full">
           <div className="px-4 flex gap-x-2 items-center w-full">
             <FaQuestionCircle className="text-grey-1" />
-            <p className="text-xs text-grey-1 w-full text-left">
+            <p className="text-xs text-grey-1 w-full font-semibold text-left">
               Upcoming Quizzes
             </p>
           </div>

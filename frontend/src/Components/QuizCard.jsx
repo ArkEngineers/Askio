@@ -18,7 +18,7 @@ function QuizCard({ title, date }) {
   };
 
   return (
-    <div className="w-60 h-40 min-w-60 hover:bg-gray-800 transition-all duration-300 bg-grey-6 mx-2 rounded-xl flex flex-col overflow-hidden justify-between pb-2">
+    <div className="w-60 aspect-square min-w-60 hover:bg-gray-800 transition-all duration-300 bg-grey-6 mx-2 rounded-xl flex flex-col overflow-hidden justify-between pb-2">
       <div className="w-full h-2/3 ">
         <img
           src="https://cdn.corporatefinanceinstitute.com/assets/database-1024x703.jpeg"

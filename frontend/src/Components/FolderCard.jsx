@@ -2,7 +2,7 @@ import React from "react";
 import { useAuth } from "../Context/AuthContext";
 import { Link } from "react-router-dom";
 
-function FolderCard({ title, date }) {
+function FolderCard({ title,date,topicId,courseId }) {
   // const { setModule } = useAuth();
 
   function stringToSlug(str) {
@@ -16,11 +16,10 @@ function FolderCard({ title, date }) {
   const handleClick = () => {
     // setModule(stringToSlug(title));
   };
-
+  const datetoShow=new Date(date).toLocaleDateString()
   return (
-    <Link
-      to={`/app/${stringToSlug(title)}/askme`}
-      onClick={handleClick}
+    <div
+    key={topicId}
       className="w-40 h-40 min-w-40 cursor-pointer hover:bg-gray-800  transition-all duration-300 bg-grey-6 mx-2 rounded-xl flex flex-col overflow-hidden justify-between pb-2"
     >
       <div className="w-full h-2/3 ">
@@ -28,14 +27,14 @@ function FolderCard({ title, date }) {
           src="https://st4.depositphotos.com/2572561/31066/i/450/depositphotos_310665768-stock-photo-over-the-shoulder-shot-of.jpg"
           className="h-1/2 w-full object-cover"
         />
-        <h3 className="mx-4 mt-2 w-[75%] font-bold text-lg text-base-1">
-          {title}
+        <h3 className="mx-4 mt-2 w-[75%] font-bold text-md text-base-1">
+          {title.slice(0,12)+" ..."}
         </h3>
       </div>
       <div>
-        <p className="mx-4 text-xs text-grey-1 w-full text-left">{date}</p>
+        <p className="mx-4 text-xs text-grey-1 w-full text-left">{datetoShow}</p>
       </div>
-    </Link>
+    </div>
   );
 }
 
