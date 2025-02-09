@@ -3,6 +3,11 @@
 
 ASKIo is an advanced AI-driven learning platform that transforms traditional document-based learning into an interactive and engaging experience. ASKIo enables users to upload content, ask questions, visualize answers, summarize notes, and more—all in a centralized, user-friendly platform. By leveraging Retrieval-Augmented Generation (RAG), ASKIo makes it easy to turn static information into a conversational and visualized learning experience.
 
+## Demo-Video
+
+https://github.com/user-attachments/assets/8779ca8c-82ba-457e-8777-bb4f749a4eed
+
+
 ## **Table of Contents**
 1. [Features](#features)
 2. [App Flow](#app-flow)
