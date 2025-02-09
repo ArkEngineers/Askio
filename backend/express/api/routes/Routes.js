@@ -7,11 +7,13 @@ import ClassController from "../controllers/group.controllers.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 import { upload } from "../middlewares/uploadMiddleware.js";
 import { updateGroup } from "../controllers/user.controller.js";
+import { RunChat, talkToCacheFile, textGeneration } from "../controllers/gemini.controller.js";
 
 const groupRouter = express.Router();
 const classRouter = express.Router();
 const quizRouter = express.Router();
 const authRouter = express.Router();
+const geminiRouter = express.Router();
 
 
 //group router
@@ -43,9 +45,15 @@ quizRouter.delete("/del/:id", QuizController.deleteQuiz);
 authRouter.get("/google", googleAuth);
 authRouter.get("/:userEmail/groups", ClassController.fetchUserClasses);
 authRouter.post("/update_group",updateGroup);
+
+// Gemini Router
+geminiRouter.post("/fileChat",upload.single("pdfFile"),RunChat);
+geminiRouter.post("/textGenerate",textGeneration);
+geminiRouter.post("/talkCache",talkToCacheFile);
 export {
   authRouter,
   groupRouter,
   classRouter,
-  quizRouter
+  quizRouter,
+  geminiRouter
 };

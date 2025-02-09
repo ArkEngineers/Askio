@@ -3,7 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import connectDB from "./db/index.js";
-import { authRouter, classRouter, groupRouter, quizRouter } from "./routes/Routes.js";
+import { authRouter, classRouter, geminiRouter, groupRouter, quizRouter } from "./routes/Routes.js";
 
 
 const app = express();
@@ -51,5 +51,6 @@ app.use("/api/v1/auth", authRouter); // <- NEW LINE
 app.use("/api/v1/quiz", quizRouter); 
 app.use("/api/v1/group", groupRouter); 
 app.use("/api/v1/class", classRouter); 
+app.use("/api/v1/chat", geminiRouter); 
 
 export default app;
