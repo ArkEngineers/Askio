@@ -3,7 +3,12 @@ import fs from "fs"
 import path from "path";
 import ApiResponse from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { model,generationConfig,cacheCreation,uploadToGemini,waitForFilesActive } from "../utils/gemini_utils.js";
+import { model,generationConfig,cacheCreation,uploadToGemini,cacheFetch,waitForFilesActive } from "../utils/gemini_utils.js";
+import mongoose from "mongoose";
+import Chat from "../models/chatModel.js"
+import userModel from "../models/userModel.js";
+
+
 
 export const RunChat = asyncHandler(async (req, res) => {
     const pdfLocalPath = req.file?.path; //path in local server not on cloudinary
@@ -61,7 +66,7 @@ export const talkToCacheFile=asyncHandler(async(req,res)=>{
 export const PdfUrlUpload = asyncHandler(async (req, res) => {
   try {
     // Define a proper absolute path for saving the file
-    const { Input_Msg,url } = req.body;
+    const { Input_Msg,url,userId } = req.body;
     const pdfLocalPath = path.join("public", "temp", "file.pdf");
 
     // Fetch the PDF file as a buffer
@@ -88,6 +93,31 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
       req.file?.originalname || "file.pdf"
     );
 
+    const genModel=(await cacheCreation(uploadResult))
+    const genModelCache=genModel.cachedContent
+    
+    let chat=await Chat.findOne({user_id:userId})
+    if (!chat){
+      chat=await Chat.create({
+        user_id:userId,
+        context:[{
+          name:genModelCache.name,
+          model:genModelCache.model,
+          usageMetadata:genModelCache.usageMetadata
+        }]
+      })
+    }else{
+      chat.context.push({
+        name: genModelCache.name,
+        model: genModelCache.model,
+        usageMetadata: genModelCache.usageMetadata
+      });
+      await chat.save()
+    }
+    
+
+    if (!chat) throw new ApiError(400,"Chat cannot be uploaded")
+
     // Send the uploaded PDF to the Gemini model
     const result = await model.generateContent([
       {
@@ -100,9 +130,38 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
     ]);
 
     // Return the chatbot's response
-    return res.status(200).json(new ApiResponse(200, await result.response.text(), "Response from the chatbot"));
+    return res.status(200).json(new ApiResponse(200, {"response-text":result.response.text(),"chatId":chat._id}, "Response from the chatbot"));
   } catch (error) {
     console.error("Error in PdfUrlUpload:", error);
     return res.status(500).json(new ApiResponse(500, null, "Internal Server Error"));
   }
 });
+
+
+export const TalkFromContext=asyncHandler(async(req,res)=>{
+  try{
+
+    const {chatId,Input_Msg}=req.body;
+    let chat=await Chat.findById(chatId)
+
+    const genModel=await cacheFetch(chat.context[0])
+
+    const result = await genModel.generateContent({
+      contents: [
+        {
+            role: 'user',
+            parts: [
+                {
+                    text: Input_Msg,
+                },
+            ],
+        },
+      ],
+    });
+
+    return res.status(200).json(new ApiResponse(200, {"response-text":result.response.text()}, "Response from the chatbot"));
+  } catch (error) {
+    console.error("Error in PdfUrlUpload:", error);
+    return res.status(500).json(new ApiResponse(500, null, "Internal Server Error"));
+  }
+})
