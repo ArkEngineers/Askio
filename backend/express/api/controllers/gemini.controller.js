@@ -3,62 +3,64 @@ import fs from "fs"
 import path from "path";
 import ApiResponse from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { model,generationConfig,cacheCreation,uploadToGemini,cacheFetch,waitForFilesActive } from "../utils/gemini_utils.js";
+import { model, generationConfig, cacheCreation, uploadToGemini, cacheFetch, waitForFilesActive } from "../utils/gemini_utils.js";
 import mongoose from "mongoose";
 import Chat from "../models/chatModel.js"
 import userModel from "../models/userModel.js";
+import { google } from "googleapis";
+import oauth2client from "../utils/oauth2client.js";
 
 
 
 export const RunChat = asyncHandler(async (req, res) => {
-    const pdfLocalPath = req.file?.path; //path in local server not on cloudinary
-    if (!pdfLocalPath) throw new ApiError(400, "PDF file is required");
+  const pdfLocalPath = req.file?.path; //path in local server not on cloudinary
+  if (!pdfLocalPath) throw new ApiError(400, "PDF file is required");
 
-    const {Input_Msg}=req.body;
+  const { Input_Msg } = req.body;
 
-    const uploadResult=await uploadToGemini(
-        pdfLocalPath,
-        `${req.file?.mimetype}`,
-        `${req.file?.originalname}`
-    )
-    const result = await model.generateContent([
-        {
-            fileData: {
-                fileUri: uploadResult.uri,
-                mimeType: uploadResult.mimeType,
-            },
-        },
-        `${Input_Msg}`,
-    ]);
-    return res.status(200).json(new ApiResponse(200, result.response.text(), "Response from the chatbot"));
+  const uploadResult = await uploadToGemini(
+    pdfLocalPath,
+    `${req.file?.mimetype}`,
+    `${req.file?.originalname}`
+  )
+  const result = await model.generateContent([
+    {
+      fileData: {
+        fileUri: uploadResult.uri,
+        mimeType: uploadResult.mimeType,
+      },
+    },
+    `${Input_Msg}`,
+  ]);
+  return res.status(200).json(new ApiResponse(200, result.response.text(), "Response from the chatbot"));
 });
 
 export const textGeneration = asyncHandler(async (req, res) => {
-    const {Input_Msg}=req.body;
+  const { Input_Msg } = req.body;
 
-    const result=await model.generateContent(`${Input_Msg}`);
-    return res.status(200).json(new ApiResponse(200, result.response.text(), "Response from the chatbot"));
+  const result = await model.generateContent(`${Input_Msg}`);
+  return res.status(200).json(new ApiResponse(200, result.response.text(), "Response from the chatbot"));
 });
 
-export const talkToCacheFile=asyncHandler(async(req,res)=>{
-    const {file}=req.body
-    const genModel=await cacheCreation(file)
-    const result = await genModel.generateContent({
-        contents: [
+export const talkToCacheFile = asyncHandler(async (req, res) => {
+  const { file } = req.body
+  const genModel = await cacheCreation(file)
+  const result = await genModel.generateContent({
+    contents: [
+      {
+        role: 'user',
+        parts: [
           {
-            role: 'user',
-            parts: [
-              {
-                text:
-                  'What are pillars of CC , Explain in detail?',
-              },
-            ],
+            text:
+              'What are pillars of CC , Explain in detail?',
           },
         ],
-      });
-      
-      console.log(result.response.usageMetadata);
-      return res.status(200).json(new ApiResponse(200, result.response.text(), "Response from the chatbot"));
+      },
+    ],
+  });
+
+  console.log(result.response.usageMetadata);
+  return res.status(200).json(new ApiResponse(200, result.response.text(), "Response from the chatbot"));
 
 })
 
@@ -66,17 +68,32 @@ export const talkToCacheFile=asyncHandler(async(req,res)=>{
 export const PdfUrlUpload = asyncHandler(async (req, res) => {
   try {
     // Define a proper absolute path for saving the file
-    const { Input_Msg,url,userId } = req.body;
-    const pdfLocalPath = path.join("public", "temp", "file.pdf");
-
-    // Fetch the PDF file as a buffer
-    const response = await fetch(url);
+    const { Input_Msg, url, userId, Token, courseId, courseworkId, attachmentId } = req.body;
+    console.log(courseId, courseworkId, attachmentId)
     
-    if (!response.ok) {
-      throw new Error(`Failed to fetch PDF: ${response.statusText}`);
+    oauth2client.setCredentials(Token)
+    const auth=oauth2client;
+    let pdfBuffer=null;
+    if (courseId && courseworkId) {
+
+      // 2. Get the attachment from Google Classroom
+      pdfBuffer = await getAttachmentFromClassroom(auth, courseId, courseworkId, attachmentId);
+    } else if (url) {
+      // Existing URL download logic
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch PDF: ${response.statusText}`);
+      }
+      pdfBuffer = await response.arrayBuffer();
+    } else {
+      return res.status(400).json(new ApiResponse(400, null, "Either courseId, courseworkId, attachmentId or url is required"));
+    }
+    if (!Input_Msg) {
+      return res.status(400).json(new ApiResponse(400, null, "Input_Msg is required"));
     }
 
-    const pdfBuffer = await response.arrayBuffer();
+    // Define a proper absolute path for saving the file
+    const pdfLocalPath = path.join("public", "temp", "file.pdf");
 
     // Write the file locally
     fs.writeFileSync(pdfLocalPath, Buffer.from(pdfBuffer), "binary");
@@ -93,20 +110,20 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
       req.file?.originalname || "file.pdf"
     );
 
-    const genModel=(await cacheCreation(uploadResult))
-    const genModelCache=genModel.cachedContent
-    
-    let chat=await Chat.findOne({user_id:userId})
-    if (!chat){
-      chat=await Chat.create({
-        user_id:userId,
-        context:[{
-          name:genModelCache.name,
-          model:genModelCache.model,
-          usageMetadata:genModelCache.usageMetadata
+    const genModel = (await cacheCreation(uploadResult))
+    const genModelCache = genModel.cachedContent
+
+    let chat = await Chat.findOne({ user_id: userId })
+    if (!chat) {
+      chat = await Chat.create({
+        user_id: userId,
+        context: [{
+          name: genModelCache.name,
+          model: genModelCache.model,
+          usageMetadata: genModelCache.usageMetadata
         }]
       })
-    }else{
+    } else {
       chat.context.push({
         name: genModelCache.name,
         model: genModelCache.model,
@@ -114,9 +131,9 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
       });
       await chat.save()
     }
-    
 
-    if (!chat) throw new ApiError(400,"Chat cannot be uploaded")
+
+    if (!chat) throw new ApiError(400, "Chat cannot be uploaded")
 
     // Send the uploaded PDF to the Gemini model
     const result = await model.generateContent([
@@ -130,7 +147,7 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
     ]);
 
     // Return the chatbot's response
-    return res.status(200).json(new ApiResponse(200, {"response-text":result.response.text(),"chatId":chat._id}, "Response from the chatbot"));
+    return res.status(200).json(new ApiResponse(200, { "response-text": result.response.text(), "chatId": chat._id }, "Response from the chatbot"));
   } catch (error) {
     console.error("Error in PdfUrlUpload:", error);
     return res.status(500).json(new ApiResponse(500, null, "Internal Server Error"));
@@ -206,3 +223,50 @@ const isInvalidResponse = (responseText) => {
   const invalidPhrases = ["not in pdf", "not available", "no information", "cannot answer"];
   return invalidPhrases.some(phrase => responseText.toLowerCase().includes(phrase));
 };
+
+
+
+async function getAttachmentFromClassroom(auth, courseId, courseworkId, attachmentId) {
+  console.log(auth)
+  const classroom = google.classroom({ version: 'v1', auth });
+  console.log(classroom)
+  // console.log(classroom)
+
+  try {
+    const courseworkResponse = await classroom.courses.courseWorkMaterials.get({
+      courseId: courseId,
+      id: courseworkId
+    });
+
+    const coursework = courseworkResponse.data;
+
+    if (!coursework.materials || coursework.materials.length === 0) {
+      throw new Error("No materials found in this coursework.");
+    }
+
+    let driveFileId = null;
+    for (const material of coursework.materials) {
+      if (material.driveFile && material.driveFile.driveFile && material.driveFile.driveFile.id === attachmentId) {
+        driveFileId = material.driveFile.driveFile.id;
+        break;
+      }
+    }
+
+    if (!driveFileId) {
+      throw new Error("Attachment not found in coursework.");
+    }
+
+    // Now download the file from Drive using the driveFileId (assuming you have Drive API enabled as well)
+    const drive = google.drive({ version: 'v3', auth });
+    const response = await drive.files.get({
+      fileId: driveFileId,
+      alt: 'media',
+    }, { responseType: 'arraybuffer' });
+
+    return Buffer.from(response.data);
+
+  } catch (error) {
+    console.error('Error getting attachment from Classroom:', error);
+    throw new Error(`Failed to get attachment from Classroom: ${error.message}`);
+  }
+}

@@ -1,5 +1,5 @@
 import React from 'react'
-import { GET_GOOGLE_TOKEN, LIST_COURSE } from '../services/constants'
+import { GET_GOOGLE_TOKEN, LIST_COURSE, PDFURL } from '../services/constants'
 import axios from "axios"
 import Cookies from "js-cookie"
 import { useAuth } from '../Context/AuthContext';
@@ -146,4 +146,37 @@ export function Create_Classroom(){
   return (
     <button className='text-sm bg-base-3 rounded-lg min-w-48 p-2 hover:bg-base-2' onClick={listCourses}>Create Askio Classroom</button>
   )
+}
+
+
+export function MY_DRIVE_BTN() {
+  const {accessToken,Token}=useAuth();
+
+  async function fetchpdfFromGoogleDrive() {
+    try {
+      let result = await axios.post(PDFURL,{
+        "Input_Msg": "What is NASA?",
+        "userId":"67697e1f943a2f317abe7e2b",
+        // "url":"https://drive.google.com/file/d/1gP6Zm3l11HflQYduMDKs_Lj8gPXLEYUj/view?usp=sharing",
+        "courseId":"544413861712",
+        "Token":Token,
+        "courseworkId":"737881079986",
+        "attachmentId":"1NkULjC5zUCJtsVQTO9VK0C7hZNvxYovO"
+      },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          }
+    })
+      console.log(result)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+  
+  return (
+    <button className="text-sm bg-base-3 rounded-lg min-w-32 p-2 hover:bg-base-2" onClick={fetchpdfFromGoogleDrive}>
+      My Drive
+    </button>
+  );
 }
