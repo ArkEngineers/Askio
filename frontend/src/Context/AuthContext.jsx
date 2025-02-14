@@ -13,6 +13,7 @@ export const AuthProvider = ({ children }) => {
   // State to manage whether the user is on the "Login" or "Register" page
   const [user, setUser] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
+  const [Token, setToken] = useState(null);
   const [selectedModule, setModule] = useState();
   const [message, setMessage] = useState("");
   const [loggedin,setLoggedIn]=useState(false);
@@ -44,7 +45,9 @@ export const AuthProvider = ({ children }) => {
         accessToken, 
         setAccessToken,
         folders,
-        setFolders
+        setFolders,
+        Token,
+        setToken
       }}
     >
       {children}

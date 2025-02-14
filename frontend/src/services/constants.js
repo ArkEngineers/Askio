@@ -12,3 +12,7 @@ export const UPDATE_ASKIO_CLASS=`${BASE_URL}/api/v1/auth/update_group`
 const CLASSROOM_BASE_URL="https://classroom.googleapis.com"
 export const LIST_COURSE=`${CLASSROOM_BASE_URL}/v1/courses`
 export const GET_USER_PROFILE=`${CLASSROOM_BASE_URL}/v1/auth/userProfiles`
+
+
+// BACKEND URL
+export const PDFURL=`${BASE_URL}/api/v1/chat/pdfUploadFromUrl`

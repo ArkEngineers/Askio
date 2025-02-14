@@ -6,6 +6,7 @@ import { CgFileAdd } from "react-icons/cg";
 import { useAuth } from "../Context/AuthContext";
 import axios from "axios";
 import { AUTH_ROUTE, QUERY_ROUTE } from "../services/constants";
+import { MY_DRIVE_BTN } from "../Components/APIButtons";
 
 function Askme() {
   const [text, setText] = useState("");
@@ -286,6 +287,7 @@ function Chatarea({ text, setText, chat, setChat }) {
         onChange={handleChange}
       />
       <div>
+        <MY_DRIVE_BTN/>
         <IoMdSend className="text-2xl cursor-pointer" onClick={handelClick} />
       </div>
     </div>
