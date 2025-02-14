@@ -138,30 +138,71 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
 });
 
 
-export const TalkFromContext=asyncHandler(async(req,res)=>{
-  try{
+export const TalkFromContext = asyncHandler(async (req, res) => {
+  try {
+    const { chatId, Input_Msg } = req.body;
 
-    const {chatId,Input_Msg}=req.body;
-    let chat=await Chat.findById(chatId)
+    // Validate input
+    if (!chatId || !Input_Msg) {
+      throw new ApiError(400, "chatId and Input_Msg are required");
+    }
 
-    const genModel=await cacheFetch(chat.context[0])
+    // Find the chat
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      throw new ApiError(404, "Chat not found");
+    }
 
-    const result = await genModel.generateContent({
-      contents: [
-        {
-            role: 'user',
-            parts: [
+    // Iterate through all contexts in the chat
+    for (const context of chat.context) {
+      try {
+        // Fetch the model for the current context
+        const genModel = await cacheFetch(context);
+
+        // Generate content using the model
+        const result = await genModel.generateContent({
+          contents: [
+            {
+              role: 'user',
+              parts: [
                 {
-                    text: Input_Msg,
+                  text: Input_Msg,
                 },
-            ],
-        },
-      ],
-    });
+              ],
+            },
+          ],
+        });
 
-    return res.status(200).json(new ApiResponse(200, {"response-text":result.response.text()}, "Response from the chatbot"));
+        const responseText = result.response.text();
+
+        // Check if the response is valid (doesn't contain phrases like "not in pdf")
+        if (!isInvalidResponse(responseText)) {
+          // Return the first valid response
+          return res.status(200).json(
+            new ApiResponse(200, { "response-text": responseText }, "Response from the chatbot")
+          );
+        }
+      } catch (error) {
+        // Log context-specific errors but continue to the next context
+        console.error(`Error processing context ${context.name}:`, error);
+      }
+    }
+
+    // If no valid response was found in any context
+    return res.status(404).json(
+      new ApiResponse(404, null, "No valid response found in any context")
+    );
+
   } catch (error) {
-    console.error("Error in PdfUrlUpload:", error);
-    return res.status(500).json(new ApiResponse(500, null, "Internal Server Error"));
+    console.error("Error in TalkFromContext:", error);
+    return res.status(error.statusCode || 500).json(
+      new ApiResponse(error.statusCode || 500, null, error.message || "Internal Server Error")
+    );
   }
-})
+});
+
+// Helper function to check if a response is invalid
+const isInvalidResponse = (responseText) => {
+  const invalidPhrases = ["not in pdf", "not available", "no information", "cannot answer"];
+  return invalidPhrases.some(phrase => responseText.toLowerCase().includes(phrase));
+};
