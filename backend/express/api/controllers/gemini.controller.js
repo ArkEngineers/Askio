@@ -4,12 +4,20 @@ import path from "path";
 import ApiResponse from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { model, generationConfig, cacheCreation, uploadToGemini, cacheFetch, waitForFilesActive } from "../utils/gemini_utils.js";
-import mongoose from "mongoose";
 import Chat from "../models/chatModel.js"
 import userModel from "../models/userModel.js";
 import { google } from "googleapis";
 import oauth2client from "../utils/oauth2client.js";
 
+const MAX_TOKENS = 4096; // Example token limit
+
+function truncateContext(context, maxTokens) {
+  const tokens = context.split(" ");
+  if (tokens.length > maxTokens) {
+    return tokens.slice(-maxTokens).join(" ");
+  }
+  return context;
+}
 
 
 export const RunChat = asyncHandler(async (req, res) => {
@@ -35,51 +43,46 @@ export const RunChat = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, result.response.text(), "Response from the chatbot"));
 });
 
-export const textGeneration = asyncHandler(async (req, res) => {
-  const { Input_Msg } = req.body;
+// export const textGeneration = asyncHandler(async (req, res) => {
+//   const { Input_Msg } = req.body;
 
-  const result = await model.generateContent(`${Input_Msg}`);
-  return res.status(200).json(new ApiResponse(200, result.response.text(), "Response from the chatbot"));
-});
+//   const result = await model.generateContent(`${Input_Msg}`);
+//   return res.status(200).json(new ApiResponse(200, result.response.text(), "Response from the chatbot"));
+// });
 
-export const talkToCacheFile = asyncHandler(async (req, res) => {
-  const { file } = req.body
-  const genModel = await cacheCreation(file)
-  const result = await genModel.generateContent({
-    contents: [
-      {
-        role: 'user',
-        parts: [
-          {
-            text:
-              'What are pillars of CC , Explain in detail?',
-          },
-        ],
-      },
-    ],
-  });
+// export const talkToCacheFile = asyncHandler(async (req, res) => {
+//   const { file } = req.body
+//   const genModel = await cacheCreation(file)
+//   const result = await genModel.generateContent({
+//     contents: [
+//       {
+//         role: 'user',
+//         parts: [
+//           {
+//             text:
+//               'What are pillars of CC , Explain in detail?',
+//           },
+//         ],
+//       },
+//     ],
+//   });
 
-  console.log(result.response.usageMetadata);
-  return res.status(200).json(new ApiResponse(200, result.response.text(), "Response from the chatbot"));
+//   console.log(result.response.usageMetadata);
+//   return res.status(200).json(new ApiResponse(200, result.response.text(), "Response from the chatbot"));
 
-})
+// })
 
 
 export const PdfUrlUpload = asyncHandler(async (req, res) => {
   try {
-    // Define a proper absolute path for saving the file
-    const { Input_Msg, url, userId, Token, courseId, courseworkId, attachmentId } = req.body;
-    console.log(courseId, courseworkId, attachmentId)
-    
-    oauth2client.setCredentials(Token)
-    const auth=oauth2client;
-    let pdfBuffer=null;
-    if (courseId && courseworkId) {
+    const { Input_Msg, url, userId, Token,chatId, courseId, courseworkId, attachmentId } = req.body;
+    oauth2client.setCredentials(Token);
+    const auth = oauth2client;
+    let pdfBuffer = null;
 
-      // 2. Get the attachment from Google Classroom
+    if (courseId && courseworkId) {
       pdfBuffer = await getAttachmentFromClassroom(auth, courseId, courseworkId, attachmentId);
     } else if (url) {
-      // Existing URL download logic
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`Failed to fetch PDF: ${response.statusText}`);
@@ -88,54 +91,55 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
     } else {
       return res.status(400).json(new ApiResponse(400, null, "Either courseId, courseworkId, attachmentId or url is required"));
     }
+
     if (!Input_Msg) {
       return res.status(400).json(new ApiResponse(400, null, "Input_Msg is required"));
     }
 
-    // Define a proper absolute path for saving the file
     const pdfLocalPath = path.join("public", "temp", "file.pdf");
-
-    // Write the file locally
     fs.writeFileSync(pdfLocalPath, Buffer.from(pdfBuffer), "binary");
 
-    // Extract input message from request body
-    if (!Input_Msg) {
-      return res.status(400).json(new ApiResponse(400, null, "Input_Msg is required"));
-    }
-
-    // Upload the PDF to Gemini
     const uploadResult = await uploadToGemini(
       pdfLocalPath,
-      req.file?.mimetype || "application/pdf", // Default to PDF if undefined
+      req.file?.mimetype || "application/pdf",
       req.file?.originalname || "file.pdf"
     );
 
-    const genModel = (await cacheCreation(uploadResult))
-    const genModelCache = genModel.cachedContent
+    const genModel = await cacheCreation(uploadResult);
+    const genModelCache = genModel.cachedContent;
 
-    let chat = await Chat.findOne({ user_id: userId })
+    let chat=null;
+    if (chatId){
+      chat = await Chat.findById(chatId);
+    }else{
+      chat = await Chat.findOne({ user_id: userId });
+    }
     if (!chat) {
       chat = await Chat.create({
         user_id: userId,
-        context: [{
-          name: genModelCache.name,
-          model: genModelCache.model,
-          usageMetadata: genModelCache.usageMetadata
-        }]
-      })
+        context: [
+          {
+            name: genModelCache.name,
+            model: genModelCache.model,
+            usageMetadata: genModelCache.usageMetadata,
+          },
+        ],
+        messages: [
+          { role: "user", content: Input_Msg },
+        ],
+      });
     } else {
       chat.context.push({
         name: genModelCache.name,
         model: genModelCache.model,
-        usageMetadata: genModelCache.usageMetadata
+        usageMetadata: genModelCache.usageMetadata,
       });
-      await chat.save()
+      chat.messages.push({ role: "user", content: Input_Msg });
+      await chat.save();
     }
 
+    if (!chat) throw new ApiError(400, "Chat cannot be uploaded");
 
-    if (!chat) throw new ApiError(400, "Chat cannot be uploaded")
-
-    // Send the uploaded PDF to the Gemini model
     const result = await model.generateContent([
       {
         fileData: {
@@ -146,7 +150,10 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
       Input_Msg,
     ]);
 
-    // Return the chatbot's response
+    // Save the model's response to the chat history
+    chat.messages.push({ role: "model", content: result.response.text() });
+    await chat.save();
+
     return res.status(200).json(new ApiResponse(200, { "response-text": result.response.text(), "chatId": chat._id }, "Response from the chatbot"));
   } catch (error) {
     console.error("Error in PdfUrlUpload:", error);
@@ -155,66 +162,41 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
 });
 
 
+
 export const TalkFromContext = asyncHandler(async (req, res) => {
   try {
     const { chatId, Input_Msg } = req.body;
 
-    // Validate input
     if (!chatId || !Input_Msg) {
       throw new ApiError(400, "chatId and Input_Msg are required");
     }
 
-    // Find the chat
     const chat = await Chat.findById(chatId);
     if (!chat) {
       throw new ApiError(404, "Chat not found");
     }
 
-    // Iterate through all contexts in the chat
-    for (const context of chat.context) {
-      try {
-        // Fetch the model for the current context
-        const genModel = await cacheFetch(context);
+    // Rebuild context from chat history
+    const context = chat.messages
+      .map((message) => `${message.role}: ${message.content}`)
+      .join("\n");
 
-        // Generate content using the model
-        const result = await genModel.generateContent({
-          contents: [
-            {
-              role: 'user',
-              parts: [
-                {
-                  text: Input_Msg,
-                },
-              ],
-            },
-          ],
-        });
+    // Append the new user input to the context
+    const truncatedContext = truncateContext(context, MAX_TOKENS);
+    const fullPrompt = `${truncatedContext}\nUser: ${Input_Msg}`;
 
-        const responseText = result.response.text();
+    // Send the full prompt to Gemini's API
+    const result = await model.generateContent(fullPrompt);
 
-        // Check if the response is valid (doesn't contain phrases like "not in pdf")
-        if (!isInvalidResponse(responseText)) {
-          // Return the first valid response
-          return res.status(200).json(
-            new ApiResponse(200, { "response-text": responseText }, "Response from the chatbot")
-          );
-        }
-      } catch (error) {
-        // Log context-specific errors but continue to the next context
-        console.error(`Error processing context ${context.name}:`, error);
-      }
-    }
+    // Save the new interaction to the chat history
+    chat.messages.push({ role: "user", content: Input_Msg });
+    chat.messages.push({ role: "model", content: result.response.text() });
+    await chat.save();
 
-    // If no valid response was found in any context
-    return res.status(404).json(
-      new ApiResponse(404, null, "No valid response found in any context")
-    );
-
+    return res.status(200).json(new ApiResponse(200, { "response-text": result.response.text() }, "Response from the chatbot"));
   } catch (error) {
     console.error("Error in TalkFromContext:", error);
-    return res.status(error.statusCode || 500).json(
-      new ApiResponse(error.statusCode || 500, null, error.message || "Internal Server Error")
-    );
+    return res.status(error.statusCode || 500).json(new ApiResponse(error.statusCode || 500, null, error.message || "Internal Server Error"));
   }
 });
 
