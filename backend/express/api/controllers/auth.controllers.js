@@ -18,7 +18,7 @@ const signToken = (id) => {
 };
 
 // Create and send cookie function
-const createSendToken = (user,accessToken, statusCode, res) => {
+const createSendToken = (user,accessToken,tokens,statusCode, res) => {
   const token = signToken(user.id);
   console.log("TOKEN: ",token)
 
@@ -38,6 +38,7 @@ const createSendToken = (user,accessToken, statusCode, res) => {
     token,
     data: {
       accessToken,
+      tokens,
       user,
     },
   });
@@ -67,7 +68,8 @@ const googleAuth = asyncHandler(async (req, res, next) => {
     });
   }
 
-  createSendToken(user,googleRes.tokens.access_token, 201, res);
+  createSendToken(user,googleRes.tokens.access_token,googleRes.tokens, 201, res);
 });
+
 
 export default googleAuth;

@@ -53,7 +53,8 @@ async function waitForFilesActive(files) {
 
 const model = genAI.getGenerativeModel({
   model: "gemini-2.0-flash",
-  systemInstruction: "Respond based only on the provided PDF. For 'hi' or 'hello,' reply with a friendly greeting. If the requested information is not in the PDF, say 'The requested information is not available in the provided document.' Always cite the PDF as the source. If a question is ambiguous, respond with 'The document does not provide sufficient information to answer this question.' Do not use external knowledge. If the PDF is unreadable, say 'The document could not be processed. Please ensure the file is clear and accessible.'",
+  // systemInstruction: "Respond based only on the provided PDF. For 'hi' or 'hello,' reply with a friendly greeting. If the requested information is not in the PDF, say 'The requested information is not available in the provided document.' Always cite the PDF as the source. If a question is ambiguous, respond with 'The document does not provide sufficient information to answer this question.' Do not use external knowledge. If the PDF is unreadable, say 'The document could not be processed. Please ensure the file is clear and accessible.'",
+  systemInstruction: "Respond based only on the provided PDF. For 'hi' or 'hello,' reply with a friendly greeting. Your responses must be based solely on the content of the uploaded PDF documents, maintaining context across all PDFs regardless of upload order, and users should be able to ask questions about any document while you reference the correct PDF accordingly; do not use pre-trained knowledge, external databases, or the internet, and if information is unavailable, respond with 'The requested information is not available in the provided documents,' always citing the source as 'According to [PDF Name]...' or 'Based on the uploaded document titled [PDF Name]...'; handle ambiguity by stating 'The documents do not provide sufficient information to answer this question' or asking for clarification, avoid external knowledge, and if a PDF is unreadable, inform the user with 'The document titled [PDF Name] could not be processed,' while maintaining clear distinctions between PDFs and providing consolidated, source-cited responses for cross-document queries.",
 });
 
 const generationConfig = {
@@ -67,7 +68,8 @@ const generationConfig = {
 async function cacheCreation(fileResult) {
   const cache = await cacheManager.create({
     model: "models/gemini-1.5-flash-001",
-    systemInstruction: "Respond based only on the provided PDF. For 'hi' or 'hello,' reply with a friendly greeting. If the requested information is not in the PDF, say 'The requested information is not available in the provided document.' Always cite the PDF as the source. If a question is ambiguous, respond with 'The document does not provide sufficient information to answer this question.' Do not use external knowledge. If the PDF is unreadable, say 'The document could not be processed. Please ensure the file is clear and accessible.'",
+    systemInstruction:model.systemInstruction,
+    // systemInstruction: "Your responses must be based solely on the content of the uploaded PDF documents, maintaining context across all PDFs regardless of upload order, and users should be able to ask questions about any document while you reference the correct PDF accordingly; do not use pre-trained knowledge, external databases, or the internet, and if information is unavailable, respond with 'The requested information is not available in the provided documents,' always citing the source as 'According to [PDF Name]...' or 'Based on the uploaded document titled [PDF Name]...'; handle ambiguity by stating 'The documents do not provide sufficient information to answer this question' or asking for clarification, avoid external knowledge, and if a PDF is unreadable, inform the user with 'The document titled [PDF Name] could not be processed,' while maintaining clear distinctions between PDFs and providing consolidated, source-cited responses for cross-document queries.",
     contents: [
       {
         role: 'user',
@@ -83,6 +85,15 @@ async function cacheCreation(fileResult) {
     ],
     ttlSeconds,
   });
+  console.log(cache)
+
+  const genModel = genAI.getGenerativeModelFromCachedContent(cache);
+  return genModel;
+}
+
+async function cacheFetch(caches){
+  const cache = await cacheManager.get(caches?.name)
+  console.log(cache)
 
   const genModel = genAI.getGenerativeModelFromCachedContent(cache);
   return genModel;
@@ -94,4 +105,5 @@ export {
   waitForFilesActive,
   uploadToGemini,
   cacheCreation,
+  cacheFetch,
 }
