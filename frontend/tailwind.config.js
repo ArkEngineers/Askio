@@ -1,20 +1,17 @@
 const withMT = require("@material-tailwind/react/utils/withMT");
- 
+
 module.exports = withMT({
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       colors: {
-        "base": {
+        base: {
           1: "#E2F1E7",
-          2: "#AD49E1",
-          3: "#7A1CAC",
+          2: "#0D92F4",
+          3: "#006BFF",
           4: "#243642",
         },
-        "grey": {
+        grey: {
           1: "#ACACAC",
           2: "#C0C0C0",
           3: "#D7D7D7",
@@ -28,13 +25,13 @@ module.exports = withMT({
         },
       },
       backgroundColor: {
-        "base": {
+        base: {
           1: "#E2F1E7",
-          2: "#AD49E1",
-          3: "#7A1CAC",
+          2: "#0D92F4",
+          3: "#006BFF",
           4: "#243642",
         },
-        "grey": {
+        grey: {
           1: "#ACACAC",
           2: "#C0C0C0",
           3: "#D7D7D7",
@@ -50,4 +47,4 @@ module.exports = withMT({
     },
   },
   plugins: [],
-})
+});

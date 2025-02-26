@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useState, useContext, useEffect } from "react";
 
 // Create the context
 const AuthContext = createContext({
@@ -16,15 +16,36 @@ export const AuthProvider = ({ children }) => {
   const [Token, setToken] = useState(null);
   const [selectedModule, setModule] = useState();
   const [message, setMessage] = useState("");
-  const [loggedin,setLoggedIn]=useState(false);
-  const [classes,setClasses]=useState([])
-  const [folders,setFolders]=useState([])
-  const [open,setOpen]=useState(false)
-  const [newClass,setNewClass]=useState(null)
+  const [loggedin, setLoggedIn] = useState(false);
+  const [classes, setClasses] = useState([]);
+  const [folders, setFolders] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [newClass, setNewClass] = useState(null);
 
   function setupUser(data) {
     setUser(data);
   }
+
+  useEffect(() => {
+    const fetchStoredData = () => {
+      const storedAccessToken = localStorage.getItem("accessToken");
+      const storedTokens = localStorage.getItem("tokens");
+      const storedUser = localStorage.getItem("user");
+
+      if (storedAccessToken && storedTokens && storedUser) {
+        console.log("🚀 ~ fetchStoredData ~ storedUser:", storedUser);
+        console.log("🚀 ~ fetchStoredData ~ storedTokens:", storedTokens);
+        console.log(
+          "🚀 ~ fetchStoredData ~ storedAccessToken:",
+          storedAccessToken
+        );
+        setAccessToken(storedAccessToken);
+        setToken(JSON.parse(storedTokens));
+        setUser(JSON.parse(storedUser));
+      }
+    };
+    fetchStoredData();
+  }, []);
   return (
     <AuthContext.Provider
       value={{
@@ -38,16 +59,16 @@ export const AuthProvider = ({ children }) => {
         setClasses,
         newClass,
         setNewClass,
-        message, 
+        message,
         setMessage,
         open,
         setOpen,
-        accessToken, 
+        accessToken,
         setAccessToken,
         folders,
         setFolders,
         Token,
-        setToken
+        setToken,
       }}
     >
       {children}

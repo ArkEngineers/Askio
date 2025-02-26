@@ -58,16 +58,20 @@ function Askme() {
 
   return (
     <div className="pt-24 pb-6 h-screen p-2 flex flex-col justify-center items-center">
-      <div className="border-2 w-8/12 border-base-2 rounded-md flex flex-1 p-2 flex-col">
+      <div className="w-8/12 rounded-md flex flex-1 p-2 flex-col">
         {chat.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
-            <h3 className="mb-4 text-4xl text-white font-bold">New to Askio! .. askme?</h3>
-            <h3 className="mb-4 text-lg font-semibold">Here are some Conversation Starters</h3>
-            <ul className="space-y-2 grid grid-cols-4 w-8/12 gap-10 place-items-center">
+            <h3 className="mb-4 text-4xl text-white font-bold">
+              New to Askio! .. askme?
+            </h3>
+            <h3 className="mb-4 text-lg font-semibold">
+              Here are some Conversation Starters
+            </h3>
+            <ul className="flex flex-col space-y-2 text-center">
               {conversationStarters.map((starter, index) => (
                 <li
                   key={index}
-                  className="cursor-pointer w-fit text-blue-500 hover:underline"
+                  className="cursor-pointer text-blue-500 hover:underline"
                   onClick={() => setText(starter)}
                 >
                   {starter}
@@ -79,10 +83,11 @@ function Askme() {
           chat.map((item, key) => (
             <div
               key={key}
-              className={`p-2 rounded-lg mb-2 ${item.isBot
+              className={`p-2 rounded-lg mb-2 ${
+                item.isBot
                   ? "bg-blue-500 text-white text-left ml-0 w-1/2"
                   : "bg-base-4 text-base-1 text-right ml-auto w-fit"
-                }`}
+              }`}
             >
               <p>{item.text}</p>
             </div>
@@ -90,11 +95,10 @@ function Askme() {
         )}
       </div>
 
-
       {modal ? (
         <div className="flex w-8/12 h-10 items-center gap-2 m-2 p-4">
           {!selectedTags.length && (
-            <button className="flex w-20 px-3 justify-between items-center text-center rounded-full bg-base-3 p-1">
+            <button className="flex gap-x-2 text-sm px-3 justify-between items-center text-center rounded-full bg-base-3 p-1">
               All
               <MdCancel />
             </button>
@@ -117,7 +121,7 @@ function Askme() {
             </span>
           ))}
           <button
-            className="flex w-36 px-3 justify-between items-center text-center rounded-full border border-white bg-grey-9 p-1"
+            className="flex text-sm gap-x-2 px-3 justify-between items-center text-center rounded-full border border-white bg-grey-9 p-1"
             onClick={() => setModal(false)}
           >
             <CgFileAdd />
@@ -248,21 +252,25 @@ function Chatarea({ text, setText, chat, setChat }) {
     try {
       // Add the user's message to the chat
       setChat((prevChat) => [...prevChat, { text, isBot: false }]);
-  
+
       // Simulate a response from the bot
-      if (text.toLowerCase().includes("mongodb")){
-        const mongoDB="MongoDB is a document-oriented database program that stores data in JSON-like documents. It's a NoSQL database that's designed to be flexible and scalable, and is often used as a cloud database"
+      if (text.toLowerCase().includes("mongodb")) {
+        const mongoDB =
+          "MongoDB is a document-oriented database program that stores data in JSON-like documents. It's a NoSQL database that's designed to be flexible and scalable, and is often used as a cloud database";
         setTimeout(() => {
           setChat((prevChat) => [...prevChat, { text: mongoDB, isBot: true }]);
         }, 500);
-      }else{
-        const staticResponse = "Thank you for your message! How can I assist you further?";
+      } else {
+        const staticResponse =
+          "Thank you for your message! How can I assist you further?";
         setTimeout(() => {
-          setChat((prevChat) => [...prevChat, { text: staticResponse, isBot: true }]);
+          setChat((prevChat) => [
+            ...prevChat,
+            { text: staticResponse, isBot: true },
+          ]);
         }, 500); // Simulate a delay for the response
       }
-      
-  
+
       // Clear the input field
       setText("");
     } catch (error) {
@@ -277,7 +285,7 @@ function Chatarea({ text, setText, chat, setChat }) {
         value={text}
         resize={false}
         placeholder="Your Contexts"
-        className="min-h-full !border-0 focus:border-transparent text-xl text-white"
+        className="min-h-full !border-0 focus:border-transparent text-base-lg text-white"
         containerProps={{
           className: "grid h-full",
         }}
@@ -286,9 +294,9 @@ function Chatarea({ text, setText, chat, setChat }) {
         }}
         onChange={handleChange}
       />
-      <div>
-        <MY_DRIVE_BTN/>
-        <IoMdSend className="text-2xl cursor-pointer" onClick={handelClick} />
+      <div className="flex items-center justify-center space-x-2">
+        <MY_DRIVE_BTN />
+        <IoMdSend className="text-3xl cursor-pointer" onClick={handelClick} />
       </div>
     </div>
   );
