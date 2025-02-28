@@ -7,19 +7,25 @@ const chatSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
-  context: [
-    {
-      name: String,
-      model: String,
-      usageMetadata: Object,
-    },
-  ],
-  messages: [
-    {
-      role: String, // "user" or "model"
-      content: String, // user input or model response
-    },
-  ],
+  context: {
+    type:[
+      {
+        name: String,
+        model: String,
+        usageMetadata: Object,
+      },
+    ],
+    default: [],
+  },
+  messages: {
+    type:[
+      {
+        role: String, // "user" or "model"
+        content: String, // user input or model response
+      },
+    ],
+    default: [],
+  },
 });
 
 const Chat = mongoose.model("Chat", chatSchema);

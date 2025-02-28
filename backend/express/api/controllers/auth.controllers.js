@@ -9,6 +9,7 @@ import ApiResponse from "../utils/ApiResponse.js";
 import User from "../models/userModel.js";
 import moment from "moment";
 import { log } from "console";
+import Chat from "../models/chatModel.js";
 
 // Sign token function
 const signToken = (id) => {
@@ -61,11 +62,18 @@ const googleAuth = asyncHandler(async (req, res, next) => {
 
   if (!user) {
     console.log("New User found");
+    
     user = await User.create({
       name: userRes.data.name,
       email: userRes.data.email,
       image: userRes.data.picture,
     });
+    const chat = await Chat.create({
+      user_id:user._id,
+    });
+
+    user.chatId = chat._id;
+    await user.save();
   }
 
   createSendToken(user,googleRes.tokens.access_token,googleRes.tokens, 201, res);

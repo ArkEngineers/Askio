@@ -10,6 +10,8 @@ import { google } from "googleapis";
 import oauth2client from "../utils/oauth2client.js";
 
 const MAX_TOKENS = 4096; // Example token limit
+const TRUNCATE_THRESHOLD = 100; // Number of messages before truncation
+const SUMMARY_PROMPT = "Summarize the following conversation:";
 
 function truncateContext(context, maxTokens) {
   const tokens = context.split(" ");
@@ -19,6 +21,12 @@ function truncateContext(context, maxTokens) {
   return context;
 }
 
+async function summarizeContext(messages) {
+  const context = messages.map((message) => `${message.role}: ${message.content}`).join("\n");
+  const prompt = `${SUMMARY_PROMPT}\n${context}`;
+  const result = await model.generateContent(prompt);
+  return result.response.text();
+}
 
 export const RunChat = asyncHandler(async (req, res) => {
   const pdfLocalPath = req.file?.path; //path in local server not on cloudinary
@@ -43,12 +51,12 @@ export const RunChat = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, result.response.text(), "Response from the chatbot"));
 });
 
-// export const textGeneration = asyncHandler(async (req, res) => {
-//   const { Input_Msg } = req.body;
+export const textGeneration = asyncHandler(async (req, res) => {
+  const { Input_Msg } = req.body;
 
-//   const result = await model.generateContent(`${Input_Msg}`);
-//   return res.status(200).json(new ApiResponse(200, result.response.text(), "Response from the chatbot"));
-// });
+  const result = await model.generateContent(`${Input_Msg}`);
+  return res.status(200).json(new ApiResponse(200, result.response.text(), "Response from the chatbot"));
+});
 
 // export const talkToCacheFile = asyncHandler(async (req, res) => {
 //   const { file } = req.body
@@ -154,6 +162,13 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
     chat.messages.push({ role: "model", content: result.response.text() });
     await chat.save();
 
+    // Periodically truncate and summarize the context
+    if (chat.messages.length > TRUNCATE_THRESHOLD) {
+      const summary = await summarizeContext(chat.messages);
+      chat.messages = [{ role: "system", content: summary }];
+      await chat.save();
+    }
+
     return res.status(200).json(new ApiResponse(200, { "response-text": result.response.text(), "chatId": chat._id }, "Response from the chatbot"));
   } catch (error) {
     console.error("Error in PdfUrlUpload:", error);
@@ -192,6 +207,13 @@ export const TalkFromContext = asyncHandler(async (req, res) => {
     chat.messages.push({ role: "user", content: Input_Msg });
     chat.messages.push({ role: "model", content: result.response.text() });
     await chat.save();
+
+    // Periodically truncate and summarize the context
+    if (chat.messages.length > TRUNCATE_THRESHOLD) {
+      const summary = await summarizeContext(chat.messages);
+      chat.messages = [{ role: "system", content: summary }];
+      await chat.save();
+    }
 
     return res.status(200).json(new ApiResponse(200, { "response-text": result.response.text() }, "Response from the chatbot"));
   } catch (error) {
