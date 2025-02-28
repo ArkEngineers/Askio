@@ -5,8 +5,13 @@ import { MdCancel } from "react-icons/md";
 import { CgFileAdd } from "react-icons/cg";
 import { useAuth } from "../Context/AuthContext";
 import axios from "axios";
-import { AUTH_ROUTE, QUERY_ROUTE } from "../services/constants";
+import {
+  AUTH_ROUTE,
+  QUERY_ROUTE,
+  TEXT_GENERATE_ROUTE,
+} from "../services/constants";
 import { MY_DRIVE_BTN } from "../Components/APIButtons";
+import { api } from "../services/api";
 
 function Askme() {
   const [text, setText] = useState("");
@@ -253,23 +258,34 @@ function Chatarea({ text, setText, chat, setChat }) {
       // Add the user's message to the chat
       setChat((prevChat) => [...prevChat, { text, isBot: false }]);
 
-      // Simulate a response from the bot
-      if (text.toLowerCase().includes("mongodb")) {
-        const mongoDB =
-          "MongoDB is a document-oriented database program that stores data in JSON-like documents. It's a NoSQL database that's designed to be flexible and scalable, and is often used as a cloud database";
-        setTimeout(() => {
-          setChat((prevChat) => [...prevChat, { text: mongoDB, isBot: true }]);
-        }, 500);
-      } else {
-        const staticResponse =
-          "Thank you for your message! How can I assist you further?";
-        setTimeout(() => {
-          setChat((prevChat) => [
-            ...prevChat,
-            { text: staticResponse, isBot: true },
-          ]);
-        }, 500); // Simulate a delay for the response
+      //Hitting API Here
+      const response = await api.post(TEXT_GENERATE_ROUTE, {
+        Input_Msg: text,
+      });
+      if (response.status === 200 && response.data.data) {
+        setChat((prevChat) => [
+          ...prevChat,
+          { text: response.data.data, isBot: true },
+        ]);
       }
+
+      // Simulate a response from the bot
+      // if (text.toLowerCase().includes("mongodb")) {
+      //   const mongoDB =
+      //     "MongoDB is a document-oriented database program that stores data in JSON-like documents. It's a NoSQL database that's designed to be flexible and scalable, and is often used as a cloud database";
+      //   setTimeout(() => {
+      //     setChat((prevChat) => [...prevChat, { text: mongoDB, isBot: true }]);
+      //   }, 500);
+      // } else {
+      //   const staticResponse =
+      //     "Thank you for your message! How can I assist you further?";
+      //   setTimeout(() => {
+      //     setChat((prevChat) => [
+      //       ...prevChat,
+      //       { text: staticResponse, isBot: true },
+      //     ]);
+      //   }, 500); // Simulate a delay for the response
+      // }
 
       // Clear the input field
       setText("");

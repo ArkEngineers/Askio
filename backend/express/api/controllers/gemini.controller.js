@@ -1,10 +1,17 @@
 import ApiError from "../utils/ApiError.js";
-import fs from "fs"
+import fs from "fs";
 import path from "path";
 import ApiResponse from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { model, generationConfig, cacheCreation, uploadToGemini, cacheFetch, waitForFilesActive } from "../utils/gemini_utils.js";
-import Chat from "../models/chatModel.js"
+import {
+  model,
+  generationConfig,
+  cacheCreation,
+  uploadToGemini,
+  cacheFetch,
+  waitForFilesActive,
+} from "../utils/gemini_utils.js";
+import Chat from "../models/chatModel.js";
 import userModel from "../models/userModel.js";
 import { google } from "googleapis";
 import oauth2client from "../utils/oauth2client.js";
@@ -19,7 +26,6 @@ function truncateContext(context, maxTokens) {
   return context;
 }
 
-
 export const RunChat = asyncHandler(async (req, res) => {
   const pdfLocalPath = req.file?.path; //path in local server not on cloudinary
   if (!pdfLocalPath) throw new ApiError(400, "PDF file is required");
@@ -30,7 +36,7 @@ export const RunChat = asyncHandler(async (req, res) => {
     pdfLocalPath,
     `${req.file?.mimetype}`,
     `${req.file?.originalname}`
-  )
+  );
   const result = await model.generateContent([
     {
       fileData: {
@@ -40,15 +46,23 @@ export const RunChat = asyncHandler(async (req, res) => {
     },
     `${Input_Msg}`,
   ]);
-  return res.status(200).json(new ApiResponse(200, result.response.text(), "Response from the chatbot"));
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, result.response.text(), "Response from the chatbot")
+    );
 });
 
-// export const textGeneration = asyncHandler(async (req, res) => {
-//   const { Input_Msg } = req.body;
+export const textGeneration = asyncHandler(async (req, res) => {
+  const { Input_Msg } = req.body;
 
-//   const result = await model.generateContent(`${Input_Msg}`);
-//   return res.status(200).json(new ApiResponse(200, result.response.text(), "Response from the chatbot"));
-// });
+  const result = await model.generateContent(`${Input_Msg}`);
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, result.response.text(), "Response from the chatbot")
+    );
+});
 
 // export const talkToCacheFile = asyncHandler(async (req, res) => {
 //   const { file } = req.body
@@ -72,16 +86,29 @@ export const RunChat = asyncHandler(async (req, res) => {
 
 // })
 
-
 export const PdfUrlUpload = asyncHandler(async (req, res) => {
   try {
-    const { Input_Msg, url, userId, Token,chatId, courseId, courseworkId, attachmentId } = req.body;
+    const {
+      Input_Msg,
+      url,
+      userId,
+      Token,
+      chatId,
+      courseId,
+      courseworkId,
+      attachmentId,
+    } = req.body;
     oauth2client.setCredentials(Token);
     const auth = oauth2client;
     let pdfBuffer = null;
 
     if (courseId && courseworkId) {
-      pdfBuffer = await getAttachmentFromClassroom(auth, courseId, courseworkId, attachmentId);
+      pdfBuffer = await getAttachmentFromClassroom(
+        auth,
+        courseId,
+        courseworkId,
+        attachmentId
+      );
     } else if (url) {
       const response = await fetch(url);
       if (!response.ok) {
@@ -89,11 +116,21 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
       }
       pdfBuffer = await response.arrayBuffer();
     } else {
-      return res.status(400).json(new ApiResponse(400, null, "Either courseId, courseworkId, attachmentId or url is required"));
+      return res
+        .status(400)
+        .json(
+          new ApiResponse(
+            400,
+            null,
+            "Either courseId, courseworkId, attachmentId or url is required"
+          )
+        );
     }
 
     if (!Input_Msg) {
-      return res.status(400).json(new ApiResponse(400, null, "Input_Msg is required"));
+      return res
+        .status(400)
+        .json(new ApiResponse(400, null, "Input_Msg is required"));
     }
 
     const pdfLocalPath = path.join("public", "temp", "file.pdf");
@@ -108,10 +145,10 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
     const genModel = await cacheCreation(uploadResult);
     const genModelCache = genModel.cachedContent;
 
-    let chat=null;
-    if (chatId){
+    let chat = null;
+    if (chatId) {
       chat = await Chat.findById(chatId);
-    }else{
+    } else {
       chat = await Chat.findOne({ user_id: userId });
     }
     if (!chat) {
@@ -124,9 +161,7 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
             usageMetadata: genModelCache.usageMetadata,
           },
         ],
-        messages: [
-          { role: "user", content: Input_Msg },
-        ],
+        messages: [{ role: "user", content: Input_Msg }],
       });
     } else {
       chat.context.push({
@@ -154,14 +189,22 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
     chat.messages.push({ role: "model", content: result.response.text() });
     await chat.save();
 
-    return res.status(200).json(new ApiResponse(200, { "response-text": result.response.text(), "chatId": chat._id }, "Response from the chatbot"));
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          { "response-text": result.response.text(), chatId: chat._id },
+          "Response from the chatbot"
+        )
+      );
   } catch (error) {
     console.error("Error in PdfUrlUpload:", error);
-    return res.status(500).json(new ApiResponse(500, null, "Internal Server Error"));
+    return res
+      .status(500)
+      .json(new ApiResponse(500, null, "Internal Server Error"));
   }
 });
-
-
 
 export const TalkFromContext = asyncHandler(async (req, res) => {
   try {
@@ -193,31 +236,57 @@ export const TalkFromContext = asyncHandler(async (req, res) => {
     chat.messages.push({ role: "model", content: result.response.text() });
     await chat.save();
 
-    return res.status(200).json(new ApiResponse(200, { "response-text": result.response.text() }, "Response from the chatbot"));
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          { "response-text": result.response.text() },
+          "Response from the chatbot"
+        )
+      );
   } catch (error) {
     console.error("Error in TalkFromContext:", error);
-    return res.status(error.statusCode || 500).json(new ApiResponse(error.statusCode || 500, null, error.message || "Internal Server Error"));
+    return res
+      .status(error.statusCode || 500)
+      .json(
+        new ApiResponse(
+          error.statusCode || 500,
+          null,
+          error.message || "Internal Server Error"
+        )
+      );
   }
 });
 
 // Helper function to check if a response is invalid
 const isInvalidResponse = (responseText) => {
-  const invalidPhrases = ["not in pdf", "not available", "no information", "cannot answer"];
-  return invalidPhrases.some(phrase => responseText.toLowerCase().includes(phrase));
+  const invalidPhrases = [
+    "not in pdf",
+    "not available",
+    "no information",
+    "cannot answer",
+  ];
+  return invalidPhrases.some((phrase) =>
+    responseText.toLowerCase().includes(phrase)
+  );
 };
 
-
-
-async function getAttachmentFromClassroom(auth, courseId, courseworkId, attachmentId) {
-  console.log(auth)
-  const classroom = google.classroom({ version: 'v1', auth });
-  console.log(classroom)
+async function getAttachmentFromClassroom(
+  auth,
+  courseId,
+  courseworkId,
+  attachmentId
+) {
+  console.log(auth);
+  const classroom = google.classroom({ version: "v1", auth });
+  console.log(classroom);
   // console.log(classroom)
 
   try {
     const courseworkResponse = await classroom.courses.courseWorkMaterials.get({
       courseId: courseId,
-      id: courseworkId
+      id: courseworkId,
     });
 
     const coursework = courseworkResponse.data;
@@ -228,7 +297,11 @@ async function getAttachmentFromClassroom(auth, courseId, courseworkId, attachme
 
     let driveFileId = null;
     for (const material of coursework.materials) {
-      if (material.driveFile && material.driveFile.driveFile && material.driveFile.driveFile.id === attachmentId) {
+      if (
+        material.driveFile &&
+        material.driveFile.driveFile &&
+        material.driveFile.driveFile.id === attachmentId
+      ) {
         driveFileId = material.driveFile.driveFile.id;
         break;
       }
@@ -239,16 +312,20 @@ async function getAttachmentFromClassroom(auth, courseId, courseworkId, attachme
     }
 
     // Now download the file from Drive using the driveFileId (assuming you have Drive API enabled as well)
-    const drive = google.drive({ version: 'v3', auth });
-    const response = await drive.files.get({
-      fileId: driveFileId,
-      alt: 'media',
-    }, { responseType: 'arraybuffer' });
+    const drive = google.drive({ version: "v3", auth });
+    const response = await drive.files.get(
+      {
+        fileId: driveFileId,
+        alt: "media",
+      },
+      { responseType: "arraybuffer" }
+    );
 
     return Buffer.from(response.data);
-
   } catch (error) {
-    console.error('Error getting attachment from Classroom:', error);
-    throw new Error(`Failed to get attachment from Classroom: ${error.message}`);
+    console.error("Error getting attachment from Classroom:", error);
+    throw new Error(
+      `Failed to get attachment from Classroom: ${error.message}`
+    );
   }
 }
