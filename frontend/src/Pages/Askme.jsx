@@ -8,6 +8,7 @@ import axios from "axios";
 import {
   AUTH_ROUTE,
   QUERY_ROUTE,
+  TALK_WITH_CONTEXT_ROUTE,
   TEXT_GENERATE_ROUTE,
 } from "../services/constants";
 import { MY_DRIVE_BTN } from "../Components/APIButtons";
@@ -248,6 +249,8 @@ const SearchPalette = ({ selectedTags, setSelectedTags, colorTags }) => {
 };
 
 function Chatarea({ text, setText, chat, setChat }) {
+  const { user } = useAuth();
+
   function handleChange(e) {
     setText(e.target.value);
   }
@@ -259,8 +262,9 @@ function Chatarea({ text, setText, chat, setChat }) {
       setChat((prevChat) => [...prevChat, { text, isBot: false }]);
 
       //Hitting API Here
-      const response = await api.post(TEXT_GENERATE_ROUTE, {
+      const response = await api.post(TALK_WITH_CONTEXT_ROUTE, {
         Input_Msg: text,
+        chatId: user?.chatId,
       });
       if (response.status === 200 && response.data.data) {
         setChat((prevChat) => [

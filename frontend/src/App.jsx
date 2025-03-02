@@ -5,7 +5,7 @@ import {
   Navigate,
   Routes,
   Route,
-  BrowserRouter
+  BrowserRouter,
 } from "react-router-dom";
 import MainLayout from "./Pages/More/MainLayout";
 import LandingPage from "./Pages/LandingPage";
@@ -15,38 +15,46 @@ import { useAuth } from "./Context/AuthContext";
 import Quiz from "./Pages/Quiz";
 import Play from "./Components/Play";
 import Flashcards from "./Pages/Flashcard";
+import NotFound from "./Pages/NotFound";
 
 function App() {
-  const { user,loggedin,setLoggedIn } = useAuth();
+  const { user, loggedin, setLoggedIn } = useAuth();
 
-
-  
-  useEffect(()=>{
-    if (user!=null){
-      setLoggedIn(true)
-    }else{
-      setLoggedIn(false)
+  useEffect(() => {
+    if (user != null) {
+      setLoggedIn(true);
+    } else {
+      setLoggedIn(false);
     }
-  },[user])
+  }, [user]);
 
- 
   return (
     <div>
       <>
-      <BrowserRouter>
-      <Routes>
-      <Route path="/" element={<Navigate to={loggedin ? "/app" : "/landing"} />} />
-      <Route path="/landing" element={loggedin ? <Navigate to="/app" /> : <LandingPage />} />
-      <Route path="/app" element={loggedin ? <MainLayout /> : <Navigate to="/landing" />}>
-        <Route path="/app" element={<Home />} />
-        <Route path="/app/flashcard" element={<Flashcards />} />
-        <Route path="/app/askme" element={<Askme />} />
-        <Route path="/app/puzzle/:slugs" element={<Quiz />} />
-        <Route path="/app/play/:slugs" element={<Play />} />
-      </Route>
-    </Routes>
-    </BrowserRouter>
-    </>
+        <BrowserRouter>
+          <Routes>
+            <Route
+              path="/"
+              element={<Navigate to={loggedin ? "/app" : "/landing"} />}
+            />
+            <Route
+              path="/landing"
+              element={loggedin ? <Navigate to="/app" /> : <LandingPage />}
+            />
+            <Route
+              path="/app"
+              element={loggedin ? <MainLayout /> : <Navigate to="/landing" />}
+            >
+              <Route path="*" element={<NotFound />} />
+              <Route path="/app" element={<Home />} />
+              <Route path="/app/flashcard" element={<Flashcards />} />
+              <Route path="/app/askme" element={<Askme />} />
+              <Route path="/app/puzzle/:slugs" element={<Quiz />} />
+              <Route path="/app/play/:slugs" element={<Play />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </>
     </div>
   );
 }

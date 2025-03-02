@@ -24,14 +24,14 @@ import { AUTH_ROUTE, RAG_ROUTE } from "../services/constants";
 import { googleLogout } from "@react-oauth/google";
 
 function Navbar() {
-  const { user,setupUser } = useAuth();
+  const { user, setupUser } = useAuth();
   const location = useLocation();
   const [image, setImage] = useState(null);
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState(null);
   const [category, setCategory] = useState("");
   const [isCustomCategory, setIsCustomCategory] = useState(false);
-  const navigate=useNavigate();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
@@ -116,23 +116,31 @@ function Navbar() {
               <SlOptions className="text-xl cursor-pointer" />
             </MenuHandler>
             <MenuList>
-              <MenuItem className="bg-red-800 hover:bg-reg-600 text-white" onClick={() => {
-                googleLogout();
-                console.log("LOGOUT")
-                setupUser(null)
-                navigate("/")
-              }}>Log Out</MenuItem>
+              <MenuItem
+                className="bg-red-800 hover:bg-reg-600 text-white"
+                onClick={() => {
+                  googleLogout();
+                  console.log("LOGOUT");
+                  setupUser(null);
+                  navigate("/");
+                }}
+              >
+                Log Out
+              </MenuItem>
             </MenuList>
           </Menu>
           <Tooltip content={user?.name}>
             <Avatar
               size="sm"
               src={
-                user?.image
-                  ? user?.image
-                  : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                user?.image ||
+                "https://cdn-icons-png.flaticon.com/512/149/149071.png"
               }
               alt="avatar"
+              onError={(e) => {
+                e.target.src =
+                  "https://cdn-icons-png.flaticon.com/512/149/149071.png"; // Fallback image
+              }}
             />
           </Tooltip>
         </div>

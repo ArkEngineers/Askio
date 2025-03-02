@@ -3,10 +3,15 @@ import { CgCardClubs, CgCardDiamonds } from "react-icons/cg";
 import { FaHome, FaPuzzlePiece } from "react-icons/fa";
 import { GoHome, GoHomeFill } from "react-icons/go";
 import { FcSettings } from "react-icons/fc";
-import { IoFlashOutline, IoFlashSharp } from "react-icons/io5";
+import {
+  IoFlashOutline,
+  IoFlashSharp,
+  IoSettingsOutline,
+} from "react-icons/io5";
 import { RiChatAiFill, RiChatAiLine } from "react-icons/ri";
 import { SlPuzzle, SlSettings } from "react-icons/sl";
 import { useLocation, Link } from "react-router-dom";
+import { IoMdSettings } from "react-icons/io";
 
 export function Sidebar() {
   const location = useLocation();
@@ -25,7 +30,7 @@ export function Sidebar() {
         {isActive("flashcard") ? <IoFlashSharp /> : <IoFlashOutline />}
       </Link>
       <Link to="/app/settings" aria-disabled>
-        {isActive("settings") ? <FcSettings /> : <SlSettings />}
+        {isActive("settings") ? <IoMdSettings /> : <IoSettingsOutline />}
       </Link>
     </div>
   );

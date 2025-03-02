@@ -13,6 +13,7 @@ export const LIST_COURSE = `${CLASSROOM_BASE_URL}/v1/courses`;
 export const GET_USER_PROFILE = `${CLASSROOM_BASE_URL}/v1/auth/userProfiles`;
 
 export const TEXT_GENERATE_ROUTE = `chat/textGenerate`;
+export const TALK_WITH_CONTEXT_ROUTE = `chat/talkwithContext`;
 
 // BACKEND URL
 export const PDFURL = `${BASE_URL}/api/v1/chat/pdfUploadFromUrl`;
