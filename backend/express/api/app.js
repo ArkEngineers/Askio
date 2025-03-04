@@ -48,9 +48,9 @@ app.get("/", (req, res) => {
 // app.use(compression());
 
 app.use("/api/v1/auth", authRouter); // <- NEW LINE
-app.use("/api/v1/quiz", quizRouter); 
 app.use("/api/v1/group", groupRouter); 
 app.use("/api/v1/class", classRouter); 
 app.use("/api/v1/chat", geminiRouter); 
+app.use("/api/v1/quiz", quizRouter); 
 
 export default app;
