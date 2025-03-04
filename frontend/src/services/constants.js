@@ -17,3 +17,5 @@ export const TALK_WITH_CONTEXT_ROUTE = `chat/talkwithContext`;
 
 // BACKEND URL
 export const PDFURL = `${BASE_URL}/api/v1/chat/pdfUploadFromUrl`;
+export const QuizURL = `${BASE_URL}/api/v1/chat/fetchQuiz`;
+export const QuizFetch = `${BASE_URL}/api/v1/quiz/fetch`;
