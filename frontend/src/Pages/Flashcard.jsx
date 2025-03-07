@@ -1,120 +1,73 @@
 import { Button, IconButton, Input, Option, Select } from "@material-tailwind/react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import FlashCardList from "../Components/FlashCardList";
-
-const flashcardsData = [
-  {
-    id:"1",
-    question: "What is the capital of France?",
-    answer: "Paris",
-  },
-  {
-    id:"2",
-    question: "What is the square root of 64?",
-    answer: "8",
-  },
-  {
-    id:"3",
-    question: "Who wrote 'Romeo and Juliet'?",
-    answer: "William Shakespeare",
-  },
-  {
-    id:"4",
-    question: "Who wrote 'Romeo and Juliet'?",
-    answer: "William Shakespeare",
-  },
-  {
-    id:"5",
-    question: "Who wrote 'Romeo and Juliet'?",
-    answer: "William Shakespeare",
-  },
-  {
-    id:"6",
-    question: "Who wrote 'Romeo and Juliet'?",
-    answer: "William Shakespeare",
-  },
-  {
-    id:"7",
-    question: "Who wrote 'Romeo and Juliet'?",
-    answer: "William Shakespeare",
-  },
-
-];
+import useDrivePicker from "react-google-drive-picker";
+import { useAuth } from "../Context/AuthContext";
+import axios from "axios";
+import { FlashFetch } from "../services/constants";
 
 function Flashcards() {
-  const [value, setValue] = React.useState(0);
-  const [cards, setCards] = React.useState(false);
-  const [flashcard, setflashcard] = useState(flashcardsData)
+  const { Token, fetchpdfFromGoogleDrive, user,classroomFolderId,setFlashcard,flashcard } = useAuth();
+  const [topic, setTopic] = useState("Random");
+  const [numQuestions, setNumQuestions] = useState(0);
+  const [cardsVisible, setCardsVisible] = useState(false);
+  const [openPicker, authResponse] = useDrivePicker();
+  
+  const fetchFlashcardFromBackend = async () => {
+    try {
+      console.log(user._id);
+      const response = await axios.post(FlashFetch, {"user_id":user._id});
+      if (response) {
+        setFlashcard([...response.data]);
+        setCardsVisible(true);
+        console.log("Flashcard fetched from backend:", flashcard);
+      }
+    } catch (error) {
+      console.error("Error fetching flashcard from backend:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (Token) {
+      fetchFlashcardFromBackend();
+    }
+  }, [Token]);
+
+  const handleOpenPicker = () => {
+    openPicker({
+      clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      developerKey: import.meta.env.VITE_ASKIO_GOOGLE_API_KEY,
+      viewId: "DOCS",
+      token: Token?.access_token,
+      supportDrives: true,
+      setIncludeFolders: true,
+      multiselect: true,
+      setParentFolder: classroomFolderId,
+      callbackFunction: async (data) => {
+        if (data.action === "picked") {
+          console.log("Selected Files:", data);
+          const flashList = [];
+          for (const file of data.docs) {
+            const flashcard = await fetchpdfFromGoogleDrive("flashcard", file?.id);
+            flashList.push(...flashcard?.data?.deck);
+          }
+          setFlashcard((prevQuizzes) => [...prevQuizzes, ...flashList]);
+          setCardsVisible(true);
+          // console.log("Updated Flashcard List:", flashList);
+        }
+      },
+    });
+  };
 
   return (
-    <div className="pt-20">
+    <div className="pt-20 grid place-items-center">
+      <nav className="flex justify-between w-10/12 text-white">
       <h1 className="text-4xl font-bold text-center py-6">FLASHCARDS</h1>
-      <nav className="flex justify-center gap-32 text-white">
-        <div className="">
-          <p>Topic</p>
-          <Select size="md" label="Select Version" className="text-grey-1 w-full bg-grey-6">
-            <Option>Random</Option>
-            <Option>DBMS</Option>
-            <Option>DS</Option>
-            <Option>OS</Option>
-            <Option>RER</Option>
-          </Select>
-        </div>
-        <div className="">
-          <p>No. of Questions</p>
-          <div className="relative w-full">
-            <Input
-              type="number"
-              value={value}
-              onChange={(e) => setValue(Number(e.target.value))}
-              className="!border-t-blue-gray-200 text-grey-1 placeholder:text-blue-gray-300 placeholder:opacity-100  focus:!border-t-gray-900 appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              labelProps={{
-                className: "before:content-none after:content-none",
-              }}
-              containerProps={{
-                className: "min-w-0",
-              }}
-            />
-            <div className="absolute right-1 top-1 flex gap-0.5">
-              <IconButton
-                size="sm"
-                variant="text"
-                className="rounded text-white"
-                onClick={() => setValue((cur) => (cur === 0 ? 0 : cur - 1))}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 16 16"
-                  fill="currentColor"
-                  className="h-4 w-4"
-                >
-                  <path d="M3.75 7.25a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5h-8.5Z" />
-                </svg>
-              </IconButton>
-              <IconButton
-                size="sm"
-                variant="text"
-                className="rounded text-white"
-                onClick={() => setValue((cur) => cur + 1)}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 16 16"
-                  fill="currentColor"
-                  className="h-4 w-4"
-                >
-                  <path d="M8.75 3.75a.75.75 0 0 0-1.5 0v3.5h-3.5a.75.75 0 0 0 0 1.5h3.5v3.5a.75.75 0 0 0 1.5 0v-3.5h3.5a.75.75 0 0 0 0-1.5h-3.5v-3.5Z" />
-                </svg>
-              </IconButton>
-            </div>
-          </div>
-        </div>
         <div className="flex items-center">
-          <Button size="lg" color="blue" className="" onClick={()=>setCards(true)}>Generate</Button>
-
+          <Button size="lg" color="blue" onClick={handleOpenPicker}>Generate Flashcards</Button>
         </div>
       </nav>
-      {cards&&<FlashCardList flashcard={flashcard}/>}
+      {cardsVisible && <FlashCardList flashcard={flashcard} />}
     </div>
   );
 }

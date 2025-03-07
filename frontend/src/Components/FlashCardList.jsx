@@ -1,51 +1,26 @@
 import React, { useState } from "react";
-
-function Flashcard({ flashcard }) {
-  const [flip, setFlip] = useState(false);
-
-  return (
-    <div
-      onClick={() => setFlip(!flip)}
-      className="relative text-white w-64 aspect-square rounded-xl flex items-center justify-center cursor-pointer transition-transform duration-500"
-      style={{
-        transformStyle: "preserve-3d",
-        transform: flip ? "rotateY(180deg)" : "rotateY(0deg)",
-      }}
-    >
-      {/* Front side */}
-      <div
-        className="absolute w-full h-full bg-gray-800 flex items-center justify-center rounded-xl"
-        style={{
-          backfaceVisibility: "hidden",
-        }}
-      >
-        {flashcard.question}
-      </div>
-
-      {/* Back side */}
-      <div
-        className="absolute w-full h-full bg-blue-600 flex items-center justify-center rounded-xl"
-        style={{
-          backfaceVisibility: "hidden",
-          transform: "rotateY(180deg)", // Ensure the back side is rotated 180 degrees
-        }}
-      >
-        {flashcard.answer}
-      </div>
-    </div>
-  );
-}
-
+import { Link } from "react-router-dom";
 
 function FlashCardList({flashcard}) {
+  console.log(flashcard)
+  function stringToSlug(str) {
+    return str
+      .toLowerCase() // Convert to lowercase
+      .trim() // Remove whitespace from start and end
+      .replace(/[^a-z0-9 -]/g, "") // Remove invalid characters
+      .replace(/\s+/g, "-") // Replace spaces with -
+      .replace(/-+/g, "-"); // Replace multiple - with single -
+  }
   return (
-    <div className='grid grid-cols-4 gap-10 place-items-center py-12'>
-        {flashcard.map(flash=>{
-            return(
-                <Flashcard key={flash.id} flashcard={flash}/>
-            )
-        })}
+    <div className="py-12 grid place-items-center w-full ">
+      <div className='grid grid-cols-3 gap-10 place-items-center py-12'>
+        {flashcard.map(flash => {
+          return (
+            <Link to={`/app/flash/${stringToSlug(flash.PDF_Title)}`}><div key={flash._id} className="aspect-square bg-base-4 hover:bg-base-3 p-6 font-bold rounded-lg">{flash.PDF_Title}</div></Link>
 
+          )
+        })}
+      </div>
     </div>
   )
 }

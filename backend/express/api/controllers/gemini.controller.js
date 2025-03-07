@@ -16,6 +16,7 @@ import userModel from "../models/userModel.js";
 import { google } from "googleapis";
 import oauth2client from "../utils/oauth2client.js";
 import { Quiz } from "../models/quizModel.js";
+import { Flashcard } from "../models/Flashcard.js";
 
 const MAX_TOKENS = 4096; // Example token limit
 const TRUNCATE_THRESHOLD = 100; // Number of messages before truncation
@@ -174,33 +175,97 @@ export const FetchQuiz = asyncHandler(async (req, res) => {
   }
 });
 
+export const FetchFlashQuestion = asyncHandler(async (req, res) => {
+  try {
+    const {
+      fileId,
+      userId,
+      Token,
+    } = req.body;
+    const Input_Msg = "Create Flashcard question and answer type list with answers in one word or sentence in pure json format to learn the content of pdf easily like deck(array of object) → <PDF_Title>, QA(array of questions) , make it easier to parse";
+    oauth2client.setCredentials(Token);
+    const auth = oauth2client;
+    let pdfBuffer = null;
+
+    if (fileId) {
+      console.log("FileId: ", fileId);
+      const drive = google.drive({ version: "v3", auth });
+      const response = await drive.files.get(
+        {
+          fileId,
+          alt: "media",
+        },
+        { responseType: "arraybuffer" }
+      );
+      console.log("PDF DATA: ", response.data);
+      pdfBuffer = response.data;
+    }
+    const pdfLocalPath = path.join("public", "temp", "file.pdf");
+    fs.writeFileSync(pdfLocalPath, Buffer.from(pdfBuffer), "binary");
+
+    const uploadResult = await uploadToGemini(
+      pdfLocalPath,
+      req.file?.mimetype || "application/pdf",
+      req.file?.originalname || "file.pdf"
+    );
+
+    const result = await model.generateContent([
+      {
+        fileData: {
+          fileUri: uploadResult.uri,
+          mimeType: uploadResult.mimeType,
+        },
+      },
+      Input_Msg,
+    ]);
+      // Extract response text
+      const responseText = result.response.text();
+    
+      // Remove Markdown JSON formatting if it exists
+      const cleanedResponseText = responseText.replace(/```json\n?|\n?```/g, "");
+    
+      // Parse the JSON data
+      let parsedData;
+      try {
+        parsedData = JSON.parse(cleanedResponseText);
+      } catch (err) {
+        return res.status(400).json(new ApiResponse(400, null, "Invalid JSON response from chatbot"));
+      }
+
+    const newQuiz = new Flashcard({
+      userId,
+      FlashData: parsedData.deck,
+    });
+
+    await newQuiz.save();
+
+    return res.status(200).json(
+      new ApiResponse(200, { deck: parsedData.deck}, "Quiz saved successfully")
+    );
+  } catch (error) {
+    console.error("Error in Fetching Quiz:", error);
+    return res
+      .status(500)
+      .json(new ApiResponse(500, null, "Internal Server Error"));
+  }
+});
 
 export const PdfUrlUpload = asyncHandler(async (req, res) => {
   try {
     const {
-      Input_Msg,
       fileId,
       url,
       userId,
       Token,
       chatId,
-      courseId,
-      courseworkId,
-      attachmentId,
     } = req.body;
+
+    const Input_Msg="Write a generic one line summary for the given PDF , reply with whether the file is uploaded successfully or not";
 
     oauth2client.setCredentials(Token);
     const auth = oauth2client;
     let pdfBuffer = null;
-
-    if (courseId && courseworkId) {
-      pdfBuffer = await getAttachmentFromClassroom(
-        auth,
-        courseId,
-        courseworkId,
-        attachmentId
-      );
-    } else if (fileId) {
+    if (fileId) {
       console.log("FileId: ", fileId);
       const drive = google.drive({ version: "v3", auth });
       const response = await drive.files.get(
@@ -222,20 +287,12 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
       return res
         .status(400)
         .json(
-          new ApiResponse(
+          new ApiError(
             400,
-            null,
             "Either courseId, courseworkId, attachmentId or url is required"
           )
         );
     }
-
-    if (!Input_Msg) {
-      return res
-        .status(400)
-        .json(new ApiResponse(400, null, "Input_Msg is required"));
-    }
-
     const pdfLocalPath = path.join("public", "temp", "file.pdf");
     fs.writeFileSync(pdfLocalPath, Buffer.from(pdfBuffer), "binary");
 

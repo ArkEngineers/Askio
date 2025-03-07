@@ -16,6 +16,7 @@ import Quiz from "./Pages/Quiz";
 import Play from "./Components/Play";
 import Flashcards from "./Pages/Flashcard";
 import NotFound from "./Pages/NotFound";
+import Flash from "./Pages/Flash";
 
 function App() {
   const { user, loggedin, setLoggedIn } = useAuth();
@@ -35,22 +36,23 @@ function App() {
           <Routes>
             <Route
               path="/"
-              element={<Navigate to={loggedin ? "/app" : "/landing"} />}
+              element={<Navigate to={loggedin ? "/app/askme" : "/landing"} />}
             />
             <Route
               path="/landing"
-              element={loggedin ? <Navigate to="/app" /> : <LandingPage />}
+              element={loggedin ? <Navigate to="/app/askme" /> : <LandingPage />}
             />
             <Route
               path="/app"
               element={loggedin ? <MainLayout /> : <Navigate to="/landing" />}
             >
               <Route path="*" element={<NotFound />} />
-              <Route path="/app" element={<Home />} />
+              {/* <Route path="/app" element={<Home />} /> */}
               <Route path="/app/flashcard" element={<Flashcards />} />
               <Route path="/app/askme" element={<Askme />} />
               <Route path="/app/puzzle/:slugs" element={<Quiz />} />
               <Route path="/app/play/:slugs" element={<Play />} />
+              <Route path="/app/flash/:slugs" element={<Flash />} />
             </Route>
           </Routes>
         </BrowserRouter>
