@@ -7,16 +7,19 @@ import authMiddleware from "../middlewares/authMiddleware.js";
 import { upload } from "../middlewares/uploadMiddleware.js";
 import { updateGroup } from "../controllers/user.controller.js";
 import {
+  FetchFlashQuestion,
   FetchQuiz,
   PdfUrlUpload,
   TalkFromContext,
   textGeneration,
 } from "../controllers/gemini.controller.js";
 import { FetchQuizfromDb } from "../controllers/quiz.controller.js";
+import { FetchFlashCardfromDb } from "../controllers/flashcard.controllers.js";
 
 const groupRouter = express.Router();
 const classRouter = express.Router();
 const quizRouter = express.Router();
+const flashRouter = express.Router();
 const authRouter = express.Router();
 const geminiRouter = express.Router();
 
@@ -37,6 +40,7 @@ classRouter.put("/:groupId/participants", ClassController.updateParticipants);
 
 // quiz Router
 quizRouter.post("/fetch",FetchQuizfromDb);
+flashRouter.post("/fetch",FetchFlashCardfromDb);
 
 authRouter.get("/google", googleAuth);
 authRouter.get("/:userEmail/groups", ClassController.fetchUserClasses);
@@ -48,5 +52,6 @@ geminiRouter.post("/textGenerate", textGeneration);
 // geminiRouter.post("/talkCache",talkToCacheFile);
 geminiRouter.post("/pdfUploadFromUrl", PdfUrlUpload);
 geminiRouter.post("/fetchQuiz", FetchQuiz);
+geminiRouter.post("/fetchFlashcard", FetchFlashQuestion);
 geminiRouter.post("/talkwithContext", TalkFromContext);
-export { authRouter, groupRouter, classRouter, geminiRouter, quizRouter };
+export { authRouter, groupRouter, classRouter, geminiRouter, quizRouter , flashRouter };

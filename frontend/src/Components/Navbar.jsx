@@ -98,7 +98,7 @@ function Navbar() {
         <div className="flex gap-8 items-start">
           <FiMenu className="text-2xl cursor-pointer mt-1" />
           <div className="flex justify-between items-center gap-x-2">
-            <Link to="/app/">
+            <Link to="/app/askme">
               <h1 className="font-bold text-3xl text-base-1">Askio</h1>
             </Link>
           </div>

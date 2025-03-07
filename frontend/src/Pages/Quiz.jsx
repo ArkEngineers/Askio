@@ -7,31 +7,8 @@ import QuizCard from "../Components/QuizCard";
 import { QuizFetch } from "../services/constants";
 
 function Quiz() {
-  const { Token, fetchpdfFromGoogleDrive, setQuizzes, quizzes, user } = useAuth();
+  const { Token, fetchpdfFromGoogleDrive, setQuizzes, quizzes, user,classroomFolderId } = useAuth();
   const [openPicker, authResponse] = useDrivePicker();
-  const [classroomFolderId, setClassroomFolderId] = useState(null);
-
-  const fetchClassroomFolderId = async () => {
-    try {
-      const response = await axios("https://www.googleapis.com/drive/v3/files", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${Token?.access_token}`,
-        },
-        params: {
-          q: "name='Classroom' and mimeType='application/vnd.google-apps.folder'",
-        },
-      });
-      const data = response.data;
-      if (data.files && data.files.length > 0) {
-        setClassroomFolderId(data.files[0].id);
-      } else {
-        console.log("Classroom folder not found");
-      }
-    } catch (error) {
-      console.error("Error fetching Classroom folder ID:", error);
-    }
-  };
 
   const fetchQuizzesFromBackend = async () => {
     try {
@@ -47,7 +24,6 @@ function Quiz() {
 
   useEffect(() => {
     if (Token) {
-      fetchClassroomFolderId();
       fetchQuizzesFromBackend();
     }
   }, [Token]);
