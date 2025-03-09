@@ -26,6 +26,10 @@ export const AuthProvider = ({ children }) => {
   const [quizzes, setQuizzes] = useState([]);
   const [flashcard, setFlashcard] = useState([]);
   const [classroomFolderId, setClassroomFolderId] = useState(null);
+  const [selectedPDF,setselectedPDF]=useState([])
+  const [PDFDATA,setPDFDATA]=useState([]);
+  const [fileIds,setfileIds]=useState([])
+
 
   function setupUser(data) {
     setUser(data);
@@ -58,15 +62,16 @@ export const AuthProvider = ({ children }) => {
     }
   }, [Token]);
 
-  async function fetchpdfFromGoogleDrive(fetch_type, fileId = null, url = null, chatId = null, courseId = null, courseworkId = null, attachmentId = null) {
+  async function fetchpdfFromGoogleDrive({fetch_type,msg=null, fileId = null, url = null, chatId = null, courseId = null, courseworkId = null, attachmentId = null}) {
     try {
       let result = null;
       if (fetch_type === "pdf") {
         result = await axios.post(
           PDFURL,
           {
+            Input_Msg:msg,
             userId: user?._id,
-            fileId: fileId,
+            fileIds: fileId,
             url: url,
             chatId: chatId,
             Token: Token,
@@ -167,7 +172,13 @@ export const AuthProvider = ({ children }) => {
         fetchClassroomFolderId,
         classroomFolderId,
         flashcard,
-        setFlashcard
+        setFlashcard,
+        selectedPDF,
+        setselectedPDF,
+        PDFDATA,
+        setPDFDATA,
+        fileIds,
+        setfileIds
       }}
     >
       {children}

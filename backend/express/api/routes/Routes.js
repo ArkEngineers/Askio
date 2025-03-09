@@ -7,6 +7,8 @@ import authMiddleware from "../middlewares/authMiddleware.js";
 import { upload } from "../middlewares/uploadMiddleware.js";
 import { updateGroup } from "../controllers/user.controller.js";
 import {
+  fetchChat,
+  fetchChatId,
   FetchFlashQuestion,
   FetchQuiz,
   PdfUrlUpload,
@@ -54,4 +56,7 @@ geminiRouter.post("/pdfUploadFromUrl", PdfUrlUpload);
 geminiRouter.post("/fetchQuiz", FetchQuiz);
 geminiRouter.post("/fetchFlashcard", FetchFlashQuestion);
 geminiRouter.post("/talkwithContext", TalkFromContext);
+geminiRouter.post("/fetchChatId", fetchChatId);
+geminiRouter.post("/fetchChat", fetchChat);
+
 export { authRouter, groupRouter, classRouter, geminiRouter, quizRouter , flashRouter };

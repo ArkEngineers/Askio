@@ -17,6 +17,10 @@ const chatSchema = new mongoose.Schema({
     ],
     default: [],
   },
+  fileIds:{
+    type:[],
+    default:[]
+  },
   messages: {
     type:[
       {

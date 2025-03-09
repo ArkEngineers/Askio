@@ -1,8 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { GET_GOOGLE_TOKEN, LIST_COURSE, PDFURL } from "../services/constants";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { useAuth } from "../Context/AuthContext";
+import { IconButton, Menu, MenuHandler, MenuItem, MenuList, Dialog, DialogHeader, DialogBody, DialogFooter, Button } from "@material-tailwind/react";
+import { FaGoogleDrive, FaPlus } from "react-icons/fa";
+import useDrivePicker from "react-google-drive-picker";
+import { CgAttachment } from "react-icons/cg";
 
 export function List_Course_Button() {
   const { classes, setClasses, accessToken } = useAuth();
@@ -185,40 +189,122 @@ export function Create_Classroom() {
   );
 }
 
-export function MY_DRIVE_BTN() {
-  const { accessToken, Token } = useAuth();
 
-  async function fetchpdfFromGoogleDrive() {
-    try {
-      let result = await axios.post(
-        PDFURL,
-        {
-          Input_Msg: "What is NASA?",
-          userId: "67697e1f943a2f317abe7e2b",
-          // "url":"https://drive.google.com/file/d/1gP6Zm3l11HflQYduMDKs_Lj8gPXLEYUj/view?usp=sharing",
-          courseId: "544413861712",
-          Token: Token,
-          courseworkId: "737881079986",
-          attachmentId: "1NkULjC5zUCJtsVQTO9VK0C7hZNvxYovO",
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+import { useDropzone } from "react-dropzone";
+
+export function MY_DRIVE_BTN({msg}) {
+  const { Token, fetchpdfFromGoogleDrive, setQuizzes, quizzes, classroomFolderId,setselectedPDF,PDFDATA,setPDFDATA} = useAuth();
+  const [openPicker, authResponse] = useDrivePicker();
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [files, setFiles] = useState([]);
+
+
+  const handleOpenPicker = () => {
+    openPicker({
+      clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      developerKey: import.meta.env.VITE_ASKIO_GOOGLE_API_KEY,
+      viewId: "DOCS",
+      token: Token?.access_token,
+      supportDrives: true,
+      setIncludeFolders: true,
+      multiselect: true,
+      setParentFolder: classroomFolderId,
+      callbackFunction: async (data) => {
+        if (data.action === "picked") {
+          setPDFDATA(data.docs)
+         try {
+           for (const file of data.docs) {
+             console.log(file.id)
+             setselectedPDF((prev)=>[...prev,file.name])
+           }
+         } catch (error) {
+          console.error(error)
+         }
         }
-      );
-      console.log(result);
-    } catch (error) {
-      console.log(error);
+      },
+    });
+  };
+
+  const handleUpload = () => {
+    setModalIsOpen(true);
+  };
+
+  const onDrop = (acceptedFiles) => {
+    setFiles(acceptedFiles);
+  };
+
+  const handleFileUpload = async () => {
+    const quizList = [...quizzes];
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await axios.post(PDFURL, formData, {
+        headers: {
+          Authorization: `Bearer ${Token?.access_token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      const quizQuestions = response.data;
+      quizList.push(...quizQuestions?.data?.quiz);
     }
-  }
+    setQuizzes((prevQuizzes) => [...prevQuizzes, ...quizList]);
+    console.log("Updated Quiz List:", quizList);
+    setModalIsOpen(false);
+  };
+
+  const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
   return (
-    <button
-      className="text-sm bg-base-3 rounded-lg w-20 py-1 hover:bg-base-2"
-      onClick={fetchpdfFromGoogleDrive}
-    >
-      My Drive
-    </button>
+    <>
+      <Menu>
+        <MenuHandler>
+          <IconButton variant="outlined" className="rounded-full" size="sm" color="white">
+            <FaPlus />
+          </IconButton>
+        </MenuHandler>
+        <MenuList className="bg-grey-6 text-white outline-0 border-0">
+          <MenuItem className="flex gap-2 items-center" onClick={handleUpload}>
+            <CgAttachment /> Upload From Computer
+          </MenuItem>
+          <MenuItem className="flex gap-2 items-center" onClick={handleOpenPicker}>
+            <FaGoogleDrive /> Drive/Classroom
+          </MenuItem>
+        </MenuList>
+      </Menu>
+
+      <Dialog open={modalIsOpen} handler={setModalIsOpen}>
+        <DialogHeader>Upload Files</DialogHeader>
+        <DialogBody divider>
+          <div
+            {...getRootProps({ className: "dropzone border-dashed border-2 border-gray-300 p-4 rounded-none h-64" })}
+          >
+            <input {...getInputProps()} />
+            <p className="text-center text-gray-500">Drag & drop files here, or click to select files</p>
+          </div>
+          <ul className="mt-4">
+            {files.map((file) => (
+              <li key={file.path}>{file.path}</li>
+            ))}
+          </ul>
+        </DialogBody>
+        <DialogFooter>
+          <Button
+            variant="text"
+            color="red"
+            onClick={() => setModalIsOpen(false)}
+            className="mr-1"
+          >
+            <span>Cancel</span>
+          </Button>
+          <Button
+            variant="gradient"
+            color="green"
+            onClick={handleFileUpload}
+          >
+            <span>Upload</span>
+          </Button>
+        </DialogFooter>
+      </Dialog>
+    </>
   );
 }

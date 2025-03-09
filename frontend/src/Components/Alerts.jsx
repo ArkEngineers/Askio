@@ -25,7 +25,7 @@ export function AlertCustomStyles() {
     open={true}
     onClose={() => setOpen(false)}
       icon={<Icon />}
-      className="w-fit rounded-none z-20 fixed bottom-2 left-5 border-l-4 border-[#2ec946] bg-base-5 font-medium text-base-1"
+      className="w-fit rounded-none z-20 fixed top-2 right-5 border-r-4 border-[#2ec946] bg-base-4 font-medium text-base-1"
     >
       {message}
     </Alert>
