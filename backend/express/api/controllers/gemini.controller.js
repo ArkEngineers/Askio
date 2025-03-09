@@ -119,6 +119,11 @@ export const FetchQuiz = asyncHandler(async (req, res) => {
       console.log("PDF DATA: ", response.data);
       pdfBuffer = response.data;
     }
+
+    if (!pdfBuffer) {
+      throw new ApiError(400, "Failed to fetch PDF data");
+    }
+
     const pdfLocalPath = path.join("public", "temp", "file.pdf");
     fs.writeFileSync(pdfLocalPath, Buffer.from(pdfBuffer), "binary");
 
@@ -137,35 +142,45 @@ export const FetchQuiz = asyncHandler(async (req, res) => {
       },
       Input_Msg,
     ]);
-      // Extract response text
-      const responseText = result.response.text();
-    
-      // Remove Markdown JSON formatting if it exists
-      const cleanedResponseText = responseText.replace(/```json\n?|\n?```/g, "");
-    
-      // Parse the JSON data
-      let parsedData;
-      try {
-        parsedData = JSON.parse(cleanedResponseText);
-      } catch (err) {
-        return res.status(400).json(new ApiResponse(400, null, "Invalid JSON response from chatbot"));
-      }
-    
-      // Ensure it has the required quiz structure
-      if (!parsedData.quiz || !Array.isArray(parsedData.quiz)) {
-        return res.status(400).json(new ApiResponse(400, null, "Invalid quiz format"));
-      }
-    
 
-    const newQuiz = new Quiz({
-      userId,
-      quizData: parsedData.quiz,
-    });
+    // Extract response text
+    const responseText = result.response.text();
 
-    await newQuiz.save();
+    // Remove Markdown JSON formatting if it exists
+    const cleanedResponseText = responseText.replace(/```json\n?|\n?```/g, "");
+
+    // Parse the JSON data
+    let parsedData;
+    try {
+      parsedData = JSON.parse(cleanedResponseText);
+    } catch (err) {
+      return res.status(400).json(new ApiResponse(400, null, "Invalid JSON response from chatbot"));
+    }
+
+    // Ensure it has the required quiz structure
+    if (!parsedData.quiz || !Array.isArray(parsedData.quiz)) {
+      return res.status(400).json(new ApiResponse(400, null, "Invalid quiz format"));
+    }
+
+    // Check if a quiz already exists for the current user
+    let existingQuiz = await Quiz.findOne({ userId });
+
+    if (existingQuiz) {
+      // Add the new quiz data to the existing quizData array
+      existingQuiz.quizData.push(...parsedData.quiz);
+      await existingQuiz.save();
+    } else {
+      // Create a new quiz document
+      const newQuiz = new Quiz({
+        userId,
+        quizData: parsedData.quiz,
+      });
+      await newQuiz.save();
+      existingQuiz = newQuiz;
+    }
 
     return res.status(200).json(
-      new ApiResponse(200, { quiz: newQuiz.quizData, userId: userId }, "Quiz saved successfully")
+      new ApiResponse(200, { quiz: existingQuiz.quizData, userId: userId }, "Quiz saved successfully")
     );
   } catch (error) {
     console.error("Error in Fetching Quiz:", error);
@@ -240,7 +255,7 @@ export const FetchFlashQuestion = asyncHandler(async (req, res) => {
     await newQuiz.save();
 
     return res.status(200).json(
-      new ApiResponse(200, { deck: parsedData.deck}, "Quiz saved successfully")
+      new ApiResponse(200, { deck: parsedData.deck}, "Flashcard saved successfully")
     );
   } catch (error) {
     console.error("Error in Fetching Quiz:", error);
@@ -252,86 +267,68 @@ export const FetchFlashQuestion = asyncHandler(async (req, res) => {
 
 export const PdfUrlUpload = asyncHandler(async (req, res) => {
   try {
-    const {
-      fileId,
+    let { Input_Msg } = req.body;
+    let {
+      fileIds, // Change to array of fileIds
       url,
       userId,
       Token,
       chatId,
     } = req.body;
 
-    const Input_Msg="Write a generic one line summary for the given PDF , reply with whether the file is uploaded successfully or not";
+    if (!Input_Msg) {
+      Input_Msg = "Write a generic one line summary for the given PDF , reply with whether the file is uploaded successfully or not";
+    }
 
     oauth2client.setCredentials(Token);
     const auth = oauth2client;
-    let pdfBuffer = null;
-    if (fileId) {
-      console.log("FileId: ", fileId);
+    let pdfBuffers = [];
+
+    if (fileIds && fileIds.length > 0) {
       const drive = google.drive({ version: "v3", auth });
-      const response = await drive.files.get(
-        {
-          fileId,
-          alt: "media",
-        },
-        { responseType: "arraybuffer" }
-      );
-      console.log("PDF DATA: ", response.data);
-      pdfBuffer = response.data;
+      for (const fileId of fileIds) {
+        console.log("FileId: ", fileId);
+        const response = await drive.files.get(
+          {
+            fileId,
+            alt: "media",
+          },
+          { responseType: "arraybuffer" }
+        );
+        console.log("PDF DATA: ", response.data);
+        pdfBuffers.push({ buffer: response.data, id: fileId });
+      }
     } else if (url) {
       const response = await axios(url);
       if (!response.ok) {
         throw new Error(`Failed to fetch PDF: ${response.statusText}`);
       }
-      pdfBuffer = await response.arrayBuffer();
+      pdfBuffers.push({ buffer: await response.arrayBuffer(), id: null });
     } else {
       return res
         .status(400)
         .json(
           new ApiError(
             400,
-            "Either courseId, courseworkId, attachmentId or url is required"
+            "Either fileIds or url is required"
           )
         );
     }
-    const pdfLocalPath = path.join("public", "temp", "file.pdf");
-    fs.writeFileSync(pdfLocalPath, Buffer.from(pdfBuffer), "binary");
-
-    const uploadResult = await uploadToGemini(
-      pdfLocalPath,
-      req.file?.mimetype || "application/pdf",
-      req.file?.originalname || "file.pdf"
-    );
-
-    // const genModel = await cacheCreation(uploadResult);
-    // const genModelCache = genModel.cachedContent;
-    // console.log("GenModel Cache: ",genModelCache);
 
     let chat = null;
     if (chatId) {
       chat = await Chat.findById(chatId);
-    } else {
-      chat = await Chat.findOne({ user_id: userId });
     }
     const currentUser = await userModel.findById(userId);
     const defaultChat = await Chat.findById(currentUser.chatId);
     if (!chat) {
       chat = await Chat.create({
         user_id: userId,
-        context: [
-          // {
-          //   name: genModelCache.name || "default",
-          //   model: genModelCache.model || null,
-          //   usageMetadata: genModelCache.usageMetadata || null,
-          // },
-        ],
+        context: [],
         messages: [{ role: "user", content: Input_Msg }],
+        fileIds: [],
       });
     } else {
-      // chat.context.push({
-      //   name: genModelCache.name,
-      //   model: genModelCache.model,
-      //   usageMetadata: genModelCache.usageMetadata,
-      // });
       chat.messages.push({ role: "user", content: Input_Msg });
       await chat.save();
     }
@@ -339,25 +336,41 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
     await defaultChat.save();
     if (!defaultChat) throw new ApiError(400, "Chat cannot be uploaded");
 
-
     if (!chat) throw new ApiError(400, "Chat cannot be uploaded");
 
-    const result = await model.generateContent([
-      {
-        fileData: {
-          fileUri: uploadResult.uri,
-          mimeType: uploadResult.mimeType,
+    let combinedResponseText = "";
+
+    for (const pdfBufferObj of pdfBuffers) {
+      const pdfLocalPath = path.join("public", "temp", "file.pdf");
+      fs.writeFileSync(pdfLocalPath, Buffer.from(pdfBufferObj.buffer), "binary");
+
+      const uploadResult = await uploadToGemini(
+        pdfLocalPath,
+        req.file?.mimetype || "application/pdf",
+        req.file?.originalname || "file.pdf"
+      );
+
+      const result = await model.generateContent([
+        {
+          fileData: {
+            fileUri: uploadResult.uri,
+            mimeType: uploadResult.mimeType,
+          },
         },
-      },
-      Input_Msg,
-    ]);
+        Input_Msg,
+      ]);
 
-    // Save the model's response to the chat history
-    chat.messages.push({ role: "model", content: result.response.text() });
-    await chat.save();
+      const responseText = result.response.text();
+      combinedResponseText += responseText + "\n";
 
-    defaultChat.messages.push({ role: "model", content: result.response.text() });
-    await defaultChat.save();
+      // Save the model's response to the chat history
+      chat.messages.push({ role: "model", content: responseText });
+      chat.fileIds.push(pdfBufferObj.id || uploadResult.uri); // Add fileId or uploadResult.uri to chat's fileIds array
+      await chat.save();
+
+      defaultChat.messages.push({ role: "model", content: responseText });
+      await defaultChat.save();
+    }
 
     // Periodically truncate and summarize the context
     if (chat.messages.length > TRUNCATE_THRESHOLD) {
@@ -371,7 +384,7 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
       await defaultChat.save();
     }
 
-    return res.status(200).json(new ApiResponse(200, { "response_text": result.response.text(), "chatId": chat._id }, "Response from the chatbot"));
+    return res.status(200).json(new ApiResponse(200, { "response_text": combinedResponseText.trim(), "chatId": chat._id, "fileIds": chat.fileIds }, "Response from the chatbot"));
   } catch (error) {
     console.error("Error in PdfUrlUpload:", error);
     return res
@@ -379,6 +392,7 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
       .json(new ApiResponse(500, null, "Internal Server Error"));
   }
 });
+
 
 export const TalkFromContext = asyncHandler(async (req, res) => {
   try {
@@ -509,3 +523,19 @@ async function getAttachmentFromClassroom(
     );
   }
 }
+
+
+export const fetchChatId = asyncHandler(async (req, res) => {
+  const { userId } = req.body;
+  const chatIds = await Chat.find({ user_id: userId }).select('_id');
+  if (!chatIds || chatIds.length === 0) throw new ApiError(404, "Chat not found");
+
+  return res.status(200).json(new ApiResponse(200, chatIds, "Chat Ids fetched successfully"));
+});
+
+export const fetchChat = asyncHandler(async (req, res) => {
+  const { chatId } = req.body;
+  const chat = await Chat.findById(chatId);
+  if (!chat) throw new ApiError(404, "Chat not found");
+  return res.status(200).json(new ApiResponse(200, chat, "Chat fetched successfully"));
+});

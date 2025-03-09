@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Textarea } from "@material-tailwind/react";
+import { Checkbox, Menu, MenuHandler, MenuItem, MenuList, Textarea } from "@material-tailwind/react";
 import { IoMdSend } from "react-icons/io";
 import { MdCancel } from "react-icons/md";
-import { CgFileAdd } from "react-icons/cg";
+import { CgAttachment, CgFileAdd } from "react-icons/cg";
 import { useAuth } from "../Context/AuthContext";
 import axios from "axios";
 import {
   AUTH_ROUTE,
+  FetchChat,
+  FetchChatId,
   QUERY_ROUTE,
   TALK_WITH_CONTEXT_ROUTE,
   TEXT_GENERATE_ROUTE,
@@ -15,6 +17,7 @@ import { MY_DRIVE_BTN } from "../Components/APIButtons";
 import { api } from "../services/api";
 
 function Askme() {
+  const { user,selectedPDF,fileIds,setfileIds,fetchpdfFromGoogleDrive,setMessage,setOpen } = useAuth();
   const [text, setText] = useState("");
   const [chat, setChat] = useState([]);
   const [modal, setModal] = useState(true);
@@ -22,6 +25,12 @@ function Askme() {
   const [selectedTags, setSelectedTags] = useState([]);
   const { selectedModule } = useAuth();
   const [allNotes, setAllNotes] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [chatIds, setChatIds] = useState([]);
+  const [selectedChatId, setSelectedChatId] = useState(null);
+  const [allChecked, setAllChecked] = useState(false);
+  const chatContainerRef = useRef(null);
+  const [pdfSelected, setPdfSelected] = useState(false); // New state to track PDF selection
 
   const conversationStarters = [
     "What's on your mind today?",
@@ -31,40 +40,70 @@ function Askme() {
     "What's the most exciting thing you learned recently?",
   ];
 
-  const fetchAllNotes = async () => {
+  const fetchChatMessages = async (chatId) => {
     try {
-      if (selectedModule) {
-        const response = await axios.get(
-          `${AUTH_ROUTE}/group/${selectedModule}`
-        );
-        if (response.status === 200) setAllNotes(response.data.notes);
+      const response = await axios.post(`${FetchChat}`, { chatId });
+      if (response.status === 200) {
+        setfileIds(response.data.data.fileIds)
+        setChat(response.data.data.messages);
       }
     } catch (error) {
-      console.error({ error });
+      console.error("Error fetching chat messages:", error);
+    }
+  };
+
+  const fetchChatIds = async () => {
+    try {
+      const response = await axios.post(`${FetchChatId}`, { userId: user._id });
+      if (response.status === 200) {
+        console.log(response.data.data);
+        setChatIds(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching chat IDs:", error);
     }
   };
 
   useEffect(() => {
-    fetchAllNotes();
+    // fetchAllNotes();
+    fetchChatIds();
   }, []);
 
-  const removeTag = (tag) => {
-    setSelectedTags(selectedTags.filter((t) => t !== tag));
+  useEffect(()=>{
+    if(chatContainerRef.current){
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  },[chat])
+  
+  useEffect(() => {
+    if (selectedPDF.length > 0) {
+      setAllChecked(false);
+      setPdfSelected(true);
+    } else {
+      if (selectedChatId === null) {
+        setAllChecked(true);
+      }else{
+        setAllChecked(false)
+      }
+      setPdfSelected(false);
+    }
+  }, [selectedPDF, selectedChatId]);
+
+  const handleChatIdClick = (chatId) => {
+    if (chatId === "default") {
+      setSelectedChatId(null);
+      setChat([]);
+      setText("");
+    } else {
+      setSelectedChatId(chatId);
+      fetchChatMessages(chatId);
+    }
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
-        setModal(true);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   return (
-    <div className="pt-24 pb-6 h-screen p-2 flex flex-col justify-center items-center">
-      <div className="w-8/12 rounded-md flex flex-1 p-2 flex-col">
+    <div className="pt-24 pb-6 h-full p-2 flex flex-col justify-center items-center relative">
+      <div className="w-8/12 rounded-md flex flex-1 p-2 flex-col-reverse justify-end overflow-y-auto" ref={chatContainerRef}>
         {chat.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
             <h3 className="mb-4 text-4xl text-white font-bold">
@@ -86,122 +125,31 @@ function Askme() {
             </ul>
           </div>
         ) : (
-          chat.map((item, key) => (
+          chat.slice().reverse().map((item, key) => (
             <div
               key={key}
-              className={`p-2 rounded-lg mb-2 ${
-                item.isBot
-                  ? "bg-blue-500 text-white text-left ml-0 w-1/2"
-                  : "bg-base-4 text-base-1 text-right ml-auto w-fit"
-              }`}
+              className={`p-2 rounded-lg mb-16 ${item.role != "user"
+                  ? "bg-blue-500 text-white text-left ml-0 w-10/12"
+                  : "bg-base-4 text-base-1 text-right ml-auto w-8/12"
+                }`}
             >
-              <p>{item.text}</p>
+              <p>{item.content}</p>
             </div>
           ))
         )}
       </div>
 
-      {modal ? (
-        <div className="flex w-8/12 h-10 items-center gap-2 m-2 p-4">
-          {!selectedTags.length && (
-            <button className="flex gap-x-2 text-sm px-3 justify-between items-center text-center rounded-full bg-base-3 p-1">
-              All
-              <MdCancel />
-            </button>
-          )}
-          {selectedTags.map((tag) => (
-            <span
-              key={tag}
-              className="bg-gray-200 w-fit justify-between px-3 text-gray-700 rounded-full py-1 mr-2 flex items-center"
-            >
-              {tag}
-              <button
-                className="ml-2 text-xs text-gray-500 hover:text-gray-700"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removeTag(tag);
-                }}
-              >
-                <MdCancel />
-              </button>
-            </span>
-          ))}
-          <button
-            className="flex text-sm gap-x-2 px-3 justify-between items-center text-center rounded-full border border-white bg-grey-9 p-1"
-            onClick={() => setModal(false)}
-          >
-            <CgFileAdd />
-            Add Context
+      {/* <div className="flex w-8/12  h-10 items-center gap-2 m-2 p-4">
+        {!selectedTags.length && (
+          <button className="flex gap-x-2 text-sm px-3 justify-between items-center text-center rounded-full bg-base-3 p-1">
+            All
+            <MdCancel />
           </button>
-        </div>
-      ) : (
-        <div className="w-8/12" ref={searchRef}>
-          <SearchPalette
-            selectedTags={selectedTags}
-            setSelectedTags={setSelectedTags}
-            colorTags={allNotes}
-          />
-        </div>
-      )}
-      <div className="w-8/12">
-        <Chatarea text={text} setText={setText} chat={chat} setChat={setChat} />
-      </div>
-    </div>
-  );
-}
-
-const SearchPalette = ({ selectedTags, setSelectedTags, colorTags }) => {
-  const [searchInput, setSearchInput] = useState("");
-  const [isDropdownVisible, setDropdownVisible] = useState(false);
-  const dropdownRef = useRef(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdownVisible(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleInputClick = () => setDropdownVisible(true);
-
-  const handleTagClick = (tag) => {
-    if (!selectedTags.includes(tag)) {
-      setSelectedTags([...selectedTags, tag]);
-    }
-  };
-
-  const removeTag = (tag) => {
-    setSelectedTags(selectedTags.filter((t) => t !== tag));
-  };
-
-  async function handleClick(e) {
-    e.preventDefault();
-    try {
-      const response = await axios.post(QUERY_ROUTE, {
-        query: text,
-        collection_name: "ML",
-      });
-      console.log(response.data); // Log the response data
-      setChat([...chat, text]); // Add the text to chat after successful API call
-      setText("");
-    } catch (error) {
-      console.error("Error fetching data:", error); // Log any error
-    }
-  }
-
-  return (
-    <div className="relative w-full" ref={dropdownRef}>
-      <div
-        className="flex flex-wrap items-center rounded-full px-4 py-1 my-1 cursor-pointer"
-        onClick={handleInputClick}
-      >
+        )}
         {selectedTags.map((tag) => (
           <span
             key={tag}
-            className="bg-gray-200 text-gray-700 rounded-full px-2 py-1 mr-2 flex items-center w-fit"
+            className="bg-gray-200 w-fit justify-between px-3 text-gray-700 rounded-full py-1 mr-2 flex items-center"
           >
             {tag}
             <button
@@ -215,41 +163,112 @@ const SearchPalette = ({ selectedTags, setSelectedTags, colorTags }) => {
             </button>
           </span>
         ))}
-        <input
-          type="text"
-          placeholder="Search palettes"
-          className="border-none outline-none flex-grow bg-transparent ml-2"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          onFocus={handleInputClick}
-          autoFocus
+      </div> */}
+      <div className="w-8/12 fixed bottom-2 z-10">
+        <div className="flex gap-2 items-center ">
+          <Checkbox checked={allChecked} color="blue" label={<p className="text-base-3 font-bold">All</p>} onChange={(e) => setAllChecked(e.target.checked)}/>
+          {selectedPDF.length!=0 && selectedPDF.map(file=><p className="border border-red-800 text-xs h-fit w-fit p-1 px-3 rounded-xl">{file}</p>)}
+        </div>
+        <Chatarea 
+          text={text} 
+          setText={setText} 
+          chat={chat} 
+          setChat={setChat} 
+          selectedPDF={selectedPDF}
+          selectedChatId={selectedChatId} 
+          setSelectedChatId={setSelectedChatId}
+          fetchChatMessages={fetchChatMessages}
+          allChecked={allChecked}
+          pdfSelected={pdfSelected} // Pass the pdfSelected state
+          setPdfSelected={setPdfSelected}
+          fetchChatIds={fetchChatIds}
         />
       </div>
 
-      {isDropdownVisible && (
-        <div className="absolute top-full left-0 w-full bg-grey-9 border border-base-2 rounded-lg shadow-md mt-2 p-4">
-          <div className="mb-4">
-            <div className="flex flex-wrap mt-2">
-              {console.log(colorTags)}
-              {colorTags.map((tag) => (
-                <span
-                  key={tag.title}
-                  className="bg-gray-100 text-gray-600 rounded-full px-3 py-1 m-1 cursor-pointer hover:bg-gray-200"
-                  onClick={() => handleTagClick(tag.title)}
-                >
-                  {tag.title}
-                </span>
-              ))}
-            </div>
-          </div>
+      <button
+        className="absolute top-4 right-4 bg-blue-500 text-white p-2 rounded-full"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+      >
+        {sidebarOpen ? "Close" : "Open"} Chat IDs
+      </button>
+
+      <div
+        className='fixed top-0 right-0 h-full py-16 shadow-base-3 shadow-lg transform transition-transform w-1/8 bg-grey-9'
+      >
+        <div className="p-2 ">
+          <ul className="text-xs">
+          <li
+              className={`mb-2 cursor-pointer ${
+                selectedChatId === null ? "bg-base-4" : "bg-base-6"
+              } hover:bg-base-4 rounded-lg p-2`}
+              onClick={() => handleChatIdClick("default")}
+            >
+              New Chat
+            </li>
+            {chatIds.map((chatId) => (
+              <Menu key={chatId._id} placement="left" allowHover>
+              <MenuHandler>
+              <div>
+                    <li
+                      className={`mb-2 cursor-pointer ${
+                        selectedChatId === chatId._id ? "bg-blue-200" : "bg-base-6"
+                      } hover:bg-base-4 rounded-lg p-2`}
+                      onClick={() => handleChatIdClick(chatId._id)}
+                    >
+                      Chat-{chatId._id}
+                    </li>
+                  </div>
+                </MenuHandler>
+                <MenuList className="bg-base-4 text-white border-0">
+                  <MenuItem onClick={async () => {
+                    console.log("Create Quiz clicked");
+                    for (const fileId of fileIds) { // Use 'of' instead of 'in' to iterate over array elements
+                      try {
+                        console.log(fileId);
+                        const response = await fetchpdfFromGoogleDrive({ fetch_type: "quiz", fileId });
+                        if (response) {
+                          console.log(response);
+                          setMessage(response.message)
+                          setOpen(true)
+
+                        }
+                      } catch (error) {
+                        console.error(error);
+                      }
+                    }
+                  }}>
+                    Create Quiz
+                  </MenuItem>
+                    <MenuItem onClick={async () => {
+                    console.log("Create Quiz clicked");
+                    for (const fileId of fileIds) { // Use 'of' instead of 'in' to iterate over array elements
+                      try {
+                        console.log(fileId);
+                        const response = await fetchpdfFromGoogleDrive({ fetch_type: "flashcard", fileId });
+                        if (response) {
+                          console.log(response);
+                          setMessage(response.message)
+                          setOpen(true)
+                        }
+                      } catch (error) {
+                        console.error(error);
+                      }
+                    }
+                  }}>
+                      Create Flashcard
+                    </MenuItem>
+                </MenuList>
+            </Menu>
+            ))}
+          </ul>
         </div>
-      )}
+      </div>
     </div>
   );
-};
+}
 
-function Chatarea({ text, setText, chat, setChat }) {
-  const { user } = useAuth();
+function Chatarea({ text, setText, chat, setChat, selectedChatId, setSelectedChatId,fetchChatMessages, allChecked, fetchChatIds,selectedPDF,pdfSelected,setPdfSelected  }) {
+  const { user,setMessage,setOpen,setselectedPDF,PDFDATA,fetchpdfFromGoogleDrive } = useAuth();
 
   function handleChange(e) {
     setText(e.target.value);
@@ -258,45 +277,72 @@ function Chatarea({ text, setText, chat, setChat }) {
   async function handelClick(e) {
     e.preventDefault();
     try {
+      let chatId = selectedChatId;
+      if (!allChecked && !selectedChatId) {
+        if(!pdfSelected){
+          setMessage("Please select a PDF first before starting a new chat.");
+          setOpen(true)
+          return;
+        }
+
+        const fileIds = PDFDATA.map(file => file?.id);
+        const response = await fetchpdfFromGoogleDrive({fetch_type:"pdf", msg:text, fileId:fileIds});
+        if (response) {
+          console.log(response)
+          fetchChatIds();
+          setSelectedChatId(response.data.chatId);
+          fetchChatMessages(response.data.chatId);
+          setselectedPDF([]);
+        }
+        // // Create a new chat
+        // const response = await axios.post(TALK_WITH_CONTEXT_ROUTE, { userId: user._id });
+        // if (response.status === 200) {
+        //   chatId = response.data.data._id;
+        //   fetchChatIds();
+        // }
+      }
+
       // Add the user's message to the chat
       setChat((prevChat) => [...prevChat, { text, isBot: false }]);
 
-      //Hitting API Here
-      const response = await api.post(TALK_WITH_CONTEXT_ROUTE, {
-        Input_Msg: text,
-        chatId: user?.chatId,
-      });
-      if (response.status === 200 && response.data.data) {
-        setChat((prevChat) => [
-          ...prevChat,
-          { text: response.data.data, isBot: true },
-        ]);
+      // Hitting API Here
+      if(selectedChatId){
+        const response = await axios.post(TALK_WITH_CONTEXT_ROUTE, {
+          Input_Msg: text,
+          chatId: chatId || user?.chatId,
+        });
+        if (response.status === 200 && response.data.data) {
+          setChat((prevChat) => [
+            ...prevChat,
+            { text: response.data.data.response_text, isBot: true },
+          ]);
+        }
+  
       }
-
-      // Simulate a response from the bot
-      // if (text.toLowerCase().includes("mongodb")) {
-      //   const mongoDB =
-      //     "MongoDB is a document-oriented database program that stores data in JSON-like documents. It's a NoSQL database that's designed to be flexible and scalable, and is often used as a cloud database";
-      //   setTimeout(() => {
-      //     setChat((prevChat) => [...prevChat, { text: mongoDB, isBot: true }]);
-      //   }, 500);
-      // } else {
-      //   const staticResponse =
-      //     "Thank you for your message! How can I assist you further?";
-      //   setTimeout(() => {
-      //     setChat((prevChat) => [
-      //       ...prevChat,
-      //       { text: staticResponse, isBot: true },
-      //     ]);
-      //   }, 500); // Simulate a delay for the response
-      // }
-
+     
       // Clear the input field
       setText("");
+
+      // Switch to the user's chat ID if "All" is checked
+      if (allChecked) {
+        setSelectedChatId(user?.chatId);
+        fetchChatMessages(user?.chatId);
+      }else if (selectedChatId){
+        setSelectedChatId(selectedChatId);
+        fetchChatMessages(selectedChatId);
+      }
+
     } catch (error) {
       console.error("Error processing message:", error); // Log any error
     }
   }
+  function handleKeyDown(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handelClick(e);
+    }
+  }
+
 
   return (
     <div className="flex w-full px-4 flex-row items-center gap-2 rounded-[99px] border-2 border-base-2 bg-grey-9">
@@ -313,10 +359,11 @@ function Chatarea({ text, setText, chat, setChat }) {
           className: "before:content-none after:content-none",
         }}
         onChange={handleChange}
+        onKeyDown={handleKeyDown}
       />
       <div className="flex items-center justify-center space-x-2">
-        <MY_DRIVE_BTN />
-        <IoMdSend className="text-3xl cursor-pointer" onClick={handelClick} />
+        <MY_DRIVE_BTN msg={text} />
+        <IoMdSend className="text-3xl cursor-pointer" onClick={handelClick}/>
       </div>
     </div>
   );
