@@ -13,9 +13,13 @@ const Sidebar = () => {
   const handleSidebarCollapse = () => {
     setCollapsed(!collapsed);
   };
+  const [showTooltip, setShowTooltip] = useState(false);
+  const handleLogout = () => {
+    setShowTooltip(false);
+  };
   return (
     <div
-      className={`h-screen flex flex-col justify-between bg-gray-200 transition-all duration-300 p-5 ${
+      className={`relative h-screen flex flex-col justify-between bg-gray-200 transition-all duration-300 p-5 ${
         collapsed ? "w-1/16" : "w-1/6"
       }`}
     >
@@ -103,7 +107,8 @@ const Sidebar = () => {
           </div>
         </div>
         <div
-          className={`flex  items-center justify-start px-3  rounded-full h-12 hover:bg-blue-200 transition-all duration-300 cursor-pointer ${
+          onClick={() => setShowTooltip(!showTooltip)}
+          className={` flex  items-center justify-start px-3  rounded-full h-12 hover:bg-blue-200 transition-all duration-300 cursor-pointer ${
             collapsed ? "w-12 rounded-full" : "w-full px-3"
           }`}
         >
@@ -118,6 +123,24 @@ const Sidebar = () => {
             <p className="font-medium">Settings</p>
           </div>
         </div>
+      </div>
+      <div
+        className={`absolute z-10 bottom-5 left-5 bg-gray-300 rounded-xl min-h-12 w-64 flex flex-col items-center justify-center overflow-hidden transition-all duration-300 ${
+          showTooltip ? "translate-x-0" : "-translate-x-100"
+        }`}
+      >
+        <p
+          onClick={handleLogout}
+          className="font-medium py-2 border-b border-b-gray-400 w-full text-center cursor-pointer hover:bg-red-200 transition-all duration-300"
+        >
+          Log out
+        </p>
+        <p
+          onClick={() => setShowTooltip(!showTooltip)}
+          className="font-medium py-2 w-full text-center cursor-pointer hover:bg-gray-100 transition-all duration-300"
+        >
+          Close
+        </p>
       </div>
     </div>
   );
