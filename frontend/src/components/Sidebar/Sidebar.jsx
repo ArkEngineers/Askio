@@ -7,6 +7,7 @@ import {
   IoSettingsOutline,
 } from "react-icons/io5";
 import { PiSealQuestion } from "react-icons/pi";
+import SettingsToolTip from "./SettingsToolTip";
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -14,9 +15,7 @@ const Sidebar = () => {
     setCollapsed(!collapsed);
   };
   const [showTooltip, setShowTooltip] = useState(false);
-  const handleLogout = () => {
-    setShowTooltip(false);
-  };
+
   return (
     <div
       className={`relative h-screen flex flex-col justify-between bg-gray-200 transition-all duration-300 p-5 ${
@@ -124,24 +123,10 @@ const Sidebar = () => {
           </div>
         </div>
       </div>
-      <div
-        className={`absolute z-10 bottom-5 left-5 bg-gray-300 rounded-xl min-h-12 w-64 flex flex-col items-center justify-center overflow-hidden transition-all duration-300 ${
-          showTooltip ? "translate-x-0" : "-translate-x-100"
-        }`}
-      >
-        <p
-          onClick={handleLogout}
-          className="font-medium py-2 border-b border-b-gray-400 w-full text-center cursor-pointer hover:bg-red-200 transition-all duration-300"
-        >
-          Log out
-        </p>
-        <p
-          onClick={() => setShowTooltip(!showTooltip)}
-          className="font-medium py-2 w-full text-center cursor-pointer hover:bg-gray-100 transition-all duration-300"
-        >
-          Close
-        </p>
-      </div>
+      <SettingsToolTip
+        showTooltip={showTooltip}
+        setShowTooltip={setShowTooltip}
+      />
     </div>
   );
 };
