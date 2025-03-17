@@ -2,7 +2,7 @@ import React from "react";
 
 const TopBar = () => {
   return (
-    <div className="w-full p-8 py-3 shadow">
+    <div className="w-full p-8 py-3 shadow bg-white">
       <div className="flex justify-between items-center w-full">
         <h1 className="text-3xl font-medium text-blue-800 ">Askio</h1>
         <img

@@ -1,13 +1,17 @@
-import React from "react";
-import Sidebar from "./components/Sidebar/Sidebar";
-import MainLayout from "./components/Main/MainLayout";
+import React, { useEffect } from "react";
+import { useUserContext } from "./store/user-context";
+import { BrowserRouter, Route, Routes } from "react-router";
+import HomePage from "./pages/HomePage";
+import LoginPage from "./pages/LoginPage";
 
 const App = () => {
+  const { user, setUser } = useUserContext();
   return (
-    <div className="flex h-screen w-screen">
-      <Sidebar />
-      <MainLayout />
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={user ? <HomePage /> : <LoginPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 };
 
