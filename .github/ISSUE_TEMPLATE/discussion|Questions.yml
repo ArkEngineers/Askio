@@ -1,0 +1,36 @@
+name: "💬 General Question / Discussion"
+description: Ask a question or start a discussion
+title: "[Question]: "
+labels: ["question", "discussion"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: "### Need help? Ask your question below."
+
+  - type: textarea
+    id: question_details
+    attributes:
+      label: "❓ Question / Discussion Topic"
+      description: "Describe your question or discussion topic."
+      placeholder: "What would you like to discuss?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: "📜 Context"
+      description: "Provide any background information related to your question."
+      placeholder: "What led you to ask this question?"
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: "✅ Checklist"
+      options:
+        - label: "I have searched existing discussions."
+          required: true
