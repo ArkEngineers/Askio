@@ -1,0 +1,60 @@
+name: "🚀 Feature Request"
+description: Suggest a new feature or improvement
+title: "[Feature]: "
+labels: ["enhancement", "feature request"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### Thank you for suggesting a feature! Please provide the details below.
+
+  - type: textarea
+    id: feature_description
+    attributes:
+      label: "🔍 Feature Description"
+      description: "Describe the feature you’d like to see implemented."
+      placeholder: "What should this feature do?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: "💡 Use Case"
+      description: "Explain why this feature is useful. Who will benefit from it?"
+      placeholder: "How will this help users?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: "🔄 Alternatives Considered"
+      description: "Have you considered any alternative approaches?"
+      placeholder: "Describe any workarounds you have tried."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: "⏳ Priority Level"
+      description: "How urgent is this feature?"
+      options:
+        - Low
+        - Medium
+        - High
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: "✅ Checklist"
+      options:
+        - label: "I have checked for existing feature requests."
+          required: true
+        - label: "I have described the use case clearly."
+          required: true
