@@ -208,7 +208,7 @@ export function MY_DRIVE_BTN({msg}) {
       supportDrives: true,
       setIncludeFolders: true,
       multiselect: true,
-      setParentFolder: classroomFolderId,
+      // setParentFolder: classroomFolderId,
       callbackFunction: async (data) => {
         if (data.action === "picked") {
           setPDFDATA(data.docs)

@@ -295,7 +295,7 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
           },
           { responseType: "arraybuffer" }
         );
-        console.log("PDF DATA: ", response.data);
+        console.log("PDF DATA: ", response.data,"FILEID: ",fileId);
         pdfBuffers.push({ buffer: response.data, id: fileId });
       }
     } else if (url) {
@@ -341,7 +341,12 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
     let combinedResponseText = "";
 
     for (const pdfBufferObj of pdfBuffers) {
-      const pdfLocalPath = path.join("public", "temp", "file.pdf");
+      const tempDir = path.join("public", "temp");
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true });
+      }
+
+      const pdfLocalPath = path.join(tempDir, "file.pdf");
       fs.writeFileSync(pdfLocalPath, Buffer.from(pdfBufferObj.buffer), "binary");
 
       const uploadResult = await uploadToGemini(
