@@ -1,0 +1,16 @@
+services:
+  frontend:
+    - name: frontend
+      build:
+        context: ./frontend
+        dockerfile: Dockerfile
+      restart: always
+      ports:
+        - "5173:5173"
+  backend:
+    - name: backend
+      build:
+        context: ./backend/express
+        dockerfile: Dockerfile
+      ports:
+        - "8000:8000"
