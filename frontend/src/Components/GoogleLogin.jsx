@@ -42,7 +42,7 @@ export default (props) => {
 
   return (
     <button
-      className="px-10 py-5 hover:bg-grey-6 w-full flex items-center justify-center gap-4"
+      className="px-6 py-5 bg-grey-6 w-60 hover:bg-grey-7 text-white flex items-center justify-center gap-4 rounded-md"
       onClick={googleLogin}
     >
       <FcGoogle /> Sign in with Google

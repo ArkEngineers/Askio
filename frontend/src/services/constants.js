@@ -1,4 +1,4 @@
-export const BASE_URL = "http://localhost:8000";
+export const BASE_URL = "";
 export const RAG_BASE_URL = "http://localhost:5000";
 
 export const AUTH_ROUTE = `${BASE_URL}/api/v1`;

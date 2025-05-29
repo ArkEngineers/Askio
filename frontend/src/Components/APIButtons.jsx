@@ -263,9 +263,9 @@ export function MY_DRIVE_BTN({msg}) {
           </IconButton>
         </MenuHandler>
         <MenuList className="bg-grey-6 text-white outline-0 border-0">
-          <MenuItem className="flex gap-2 items-center" onClick={handleUpload}>
+          {/* <MenuItem className="flex gap-2 items-center" onClick={handleUpload}>
             <CgAttachment /> Upload From Computer
-          </MenuItem>
+          </MenuItem> */}
           <MenuItem className="flex gap-2 items-center" onClick={handleOpenPicker}>
             <FaGoogleDrive /> Drive/Classroom
           </MenuItem>
