@@ -62,7 +62,8 @@ export const AuthProvider = ({ children }) => {
     }
   }, [Token]);
 
-  async function fetchpdfFromGoogleDrive({fetch_type,msg=null, fileId = null, url = null, chatId = null, courseId = null, courseworkId = null, attachmentId = null}) {
+  async function fetchpdfFromGoogleDrive({fetch_type,msg=null, fileId = null, url = null, chatId = null, courseId = null, courseworkId = null, attachmentId = null,file_name=null}) {
+    console.log("Feching pdf from Google Drive with fileId:",file_name);
     try {
       let result = null;
       if (fetch_type === "pdf") {
@@ -88,6 +89,7 @@ export const AuthProvider = ({ children }) => {
           {
             userId: user?._id,
             fileId: fileId,
+            filename:file_name,
             chatId: chatId,
             Token: Token,
           },
@@ -103,6 +105,7 @@ export const AuthProvider = ({ children }) => {
           {
             userId: user?._id,
             fileId: fileId,
+            filename:file_name,
             Token: Token,
           },
           {

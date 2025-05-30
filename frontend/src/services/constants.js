@@ -17,9 +17,9 @@ export const TEXT_GENERATE_ROUTE = `${CHAT_ROUTE}/textGenerate`;
 export const TALK_WITH_CONTEXT_ROUTE = `${CHAT_ROUTE}/talkwithContext`;
 
 // BACKEND URL
-export const PDFURL = `${BASE_URL}/api/v1/chat/pdfUploadFromUrl`;
-export const QuizURL = `${BASE_URL}/api/v1/chat/fetchQuiz`;
-export const QuizFetch = `${BASE_URL}/api/v1/quiz/fetch`;
+export const PDFURL = `/api/v1/chat/pdfUploadFromUrl`;
+export const QuizURL = `/api/v1/chat/fetchQuiz`;
+export const QuizFetch = `/api/v1/quiz/fetch`;
 export const FlashURL = `${BASE_URL}/api/v1/chat/fetchFlashcard`;
 export const FlashFetch = `${BASE_URL}/api/v1/flash/fetch`;
 export const FetchChatId = `${BASE_URL}/api/v1/chat/fetchChatId`;

@@ -98,16 +98,17 @@ export const FetchQuiz = asyncHandler(async (req, res) => {
     const {
       fileId,
       userId,
+      filename,
       Token,
       chatId,
     } = req.body;
-    const Input_Msg = "Create 5 questions and their answers in a quiz format with the correct answer. Reply in JSON format such that: quiz (array of object) → <PDF_Title>, QA(array of questions) , make it easier to parse";
+    console.log("FileId: ", fileId);
+    const Input_Msg = "Create 5 questions and their answers in a quiz format with the correct answer. Reply in JSON format such that: quiz (array of object) → <PDF_Title>, QA(array of questions) , make it easier to parse,make sure the PDF_Title ="+filename+" exactly";
     oauth2client.setCredentials(Token);
     const auth = oauth2client;
     let pdfBuffer = null;
 
     if (fileId) {
-      console.log("FileId: ", fileId);
       const drive = google.drive({ version: "v3", auth });
       const response = await drive.files.get(
         {
@@ -116,7 +117,6 @@ export const FetchQuiz = asyncHandler(async (req, res) => {
         },
         { responseType: "arraybuffer" }
       );
-      console.log("PDF DATA: ", response.data);
       pdfBuffer = response.data;
     }
 
@@ -144,17 +144,30 @@ export const FetchQuiz = asyncHandler(async (req, res) => {
     ]);
 
     // Extract response text
-    const responseText = result.response.text();
+    let responseText = result.response.text();
 
     // Remove Markdown JSON formatting if it exists
-    const cleanedResponseText = responseText.replace(/```json\n?|\n?```/g, "");
+    let cleanedResponseText = responseText.replace(/```json\n?|\n?```/g, "");
 
-    // Parse the JSON data
+    // Try to parse the JSON data, attempt to fix if fails
     let parsedData;
     try {
       parsedData = JSON.parse(cleanedResponseText);
     } catch (err) {
-      return res.status(400).json(new ApiResponse(400, null, "Invalid JSON response from chatbot"));
+      // Attempt to fix common JSON issues
+      try {
+        // Replace single quotes with double quotes
+        let fixed = cleanedResponseText.replace(/'/g, '"');
+        // Remove trailing commas
+        fixed = fixed.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
+        // Add missing brackets if possible
+        if (!fixed.trim().startsWith("{") && !fixed.trim().startsWith("[")) {
+          fixed = "{" + fixed + "}";
+        }
+        parsedData = JSON.parse(fixed);
+      } catch (fixErr) {
+        return res.status(400).json(new ApiResponse(400, null, "Invalid JSON response from chatbot"));
+      }
     }
 
     // Ensure it has the required quiz structure
@@ -194,10 +207,12 @@ export const FetchFlashQuestion = asyncHandler(async (req, res) => {
   try {
     const {
       fileId,
+      filename,
       userId,
       Token,
     } = req.body;
-    const Input_Msg = "Create Flashcard question and answer type list with answers in one word or sentence in pure json format to learn the content of pdf easily like deck(array of object) → <PDF_Title>, QA(array of questions) , make it easier to parse";
+    console.log("FileName: ", filename);
+    const Input_Msg = `Create Flashcard question and answer type list with answers in one word or sentence in pure json format to learn the content of pdf easily like deck(array of object) → <PDF_Title>, QA(array of questions) , make it easier to parse, make sure the PDF_Title =${filename} exactly`;
     oauth2client.setCredentials(Token);
     const auth = oauth2client;
     let pdfBuffer = null;
@@ -279,7 +294,7 @@ export const PdfUrlUpload = asyncHandler(async (req, res) => {
     if (!Input_Msg) {
       Input_Msg = "Write a generic one line summary for the given PDF , reply with whether the file is uploaded successfully or not";
     }
-
+    Input_Msg = Input_Msg+"make sure to return in markdown format with ```json\n and \n``` at the end";
     oauth2client.setCredentials(Token);
     const auth = oauth2client;
     let pdfBuffers = [];

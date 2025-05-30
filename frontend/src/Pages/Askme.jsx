@@ -3,8 +3,10 @@ import { Textarea } from "@material-tailwind/react";
 import { IoMdSend } from "react-icons/io";
 import { useAuth } from "../Context/AuthContext";
 import axios from "axios";
+import ReactMarkdown from "react-markdown";
 import {
   FetchChat,
+  PDFURL,
   TALK_WITH_CONTEXT_ROUTE,
 } from "../services/constants";
 import { MY_DRIVE_BTN } from "../Components/APIButtons";
@@ -61,28 +63,42 @@ function Askme() {
     }
   }, [chat]);
 
-  // Handle sending a message
-  const handleSend = async (e) => {
-    e.preventDefault();
-    if (!text.trim()) return;
-    setChat((prev) => [{ content: text, role: "user" }, ...prev]);
-    setText("");
-    try {
-      const response = await axios.post(TALK_WITH_CONTEXT_ROUTE, {
+const handleSend = async (e) => {
+  e.preventDefault();
+  if (!text.trim()) return;
+  setChat((prev) => [{ content: text, role: "user" }, ...prev]);
+  setText("");
+  try {
+    let endpoint, payload;
+    if (selectedPdf && selectedPdf.id) {
+      endpoint = PDFURL;
+      payload = {
         Input_Msg: text,
+        userId: user?._id,
+        fileId: selectedPdf.id,
         chatId: selectedChatId,
-      });
-      if (response.status === 200 && response.data.data) {
-        setChat((prev) => [
-          { content: response.data.data.response_text, role: "bot" },
-          ...prev,
-        ]);
-      }
-    } catch (error) {
-      setMessage("Error sending message");
-      setOpen(true);
+      };
+    } else {
+      endpoint = TALK_WITH_CONTEXT_ROUTE;
+      payload = {
+        Input_Msg: text,
+        userId: user?._id,
+        chatId: selectedChatId,
+      };
     }
-  };
+
+    const response = await axios.post(endpoint, payload);
+    if (response.status === 200 && response.data.data) {
+      setChat((prev) => [
+        { content: response.data.data.response_text, role: "bot" },
+        ...prev,
+      ]);
+    }
+  } catch (error) {
+    setMessage("Error sending message");
+    setOpen(true);
+  }
+};
 
   return (
     <div className="flex flex-col items-center w-full pt-12 pb-0 flex-1 relative min-h-screen bg-gray-950 text-gray-100">
@@ -90,8 +106,8 @@ function Askme() {
         {/* Chat messages */}
         <div
           className={`flex-1 overflow-y-auto px-6 ${chat.length === 0
-              ? "flex items-center justify-center"
-              : "pt-8 pb-32"
+            ? "flex items-center justify-center"
+            : "pt-8 pb-32"
             }`}
           ref={chatContainerRef}
           style={{
@@ -118,7 +134,10 @@ function Askme() {
                   : "bg-gray-800 text-left mr-auto w-3/4"
                   }`}
               >
-                <p>{item.content}</p>
+                <ReactMarkdown
+                  // className="prose prose-invert max-w-none"
+                  children={item.content}
+                />
               </div>
             ))
           )}

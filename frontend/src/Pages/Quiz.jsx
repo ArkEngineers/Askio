@@ -9,11 +9,14 @@ import { QuizFetch } from "../services/constants";
 function Quiz() {
   const { Token, fetchpdfFromGoogleDrive, setQuizzes, quizzes, user, classroomFolderId } = useAuth();
   const [openPicker] = useDrivePicker();
+  const [cardsVisible, setCardsVisible] = React.useState(false);
 
   const fetchQuizzesFromBackend = async () => {
     try {
+      console.log("Fetching quizzes from backend for user:", user._id);
       const response = await axios.post(QuizFetch, { "user_id": user._id });
       if (response) {
+        console.log("Quizzes fetched from backend:", response.data);
         setQuizzes([...response.data]);
       }
     } catch (error) {
@@ -22,6 +25,7 @@ function Quiz() {
   };
 
   useEffect(() => {
+    console.log("Token in Quiz component:", Token);
     if (Token) {
       fetchQuizzesFromBackend();
     }
@@ -36,15 +40,22 @@ function Quiz() {
       supportDrives: true,
       setIncludeFolders: true,
       multiselect: true,
-      setParentFolder: classroomFolderId,
+      // setParentFolder: classroomFolderId,
       callbackFunction: async (data) => {
         if (data.action === "picked") {
-          const quizList = [...quizzes];
           for (const file of data.docs) {
-            const quizQuestions = await fetchpdfFromGoogleDrive("quiz", file?.id);
-            quizList.push(...quizQuestions?.data?.quiz);
+            console.log("Selected file:", file);
+            const quizData = await fetchpdfFromGoogleDrive({fetch_type:"quiz", fileId:file?.id,file_name:file?.name});
+            console.log("Quiz data received:", quizData);
+            // Check if quizData.data.quiz exists and is an array
+            if (quizData?.data?.quiz && Array.isArray(quizData.data.quiz)) {
+              setQuizzes((prev) => [...prev, ...quizData.data.quiz]);
+            } else {
+              // Optionally show an error to the user
+              console.error("Quiz data not found or invalid format for file:", file?.name);
+            }
           }
-          setQuizzes((prev) => [...prev, ...quizList]);
+          setCardsVisible(true);
         }
       },
     });
